@@ -1,0 +1,28 @@
+services:
+  toksbay_dev:
+    image: postgres:13
+    container_name: toksbay_dev
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: toksbay
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: toks_dev
+    networks:
+      - toks_network
+
+  toksbay_test:
+    image: postgres:13
+    container_name: toksbay_test
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: toksbay
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: toks_test
+    networks:
+      - toks_network
+
+networks:
+  toks_network:
+    driver: bridge
