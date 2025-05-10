@@ -1,20 +1,19 @@
-import { Injectable, NotFoundException, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { UserRepository } from './repository/user.repository';
-import { PasswordService } from 'src/auth/password.service';
-import { CreateUserDto, UpdateUserDto } from './dto';
-import { CreateSocialUserDto } from 'src/auth/dto/social-auth.dto';
-import { VerificationService } from 'src/auth/verification.service';
+import { Injectable, NotFoundException, Logger, BadRequestException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
+import { UserRepository } from '../repository/user.repository';
+import { PasswordService } from '../../auth/services';
+import { CreateUserDto, UpdateUserDto } from '../dto';
+import { CreateSocialUserDto } from '../../auth/dto';
+import { VerificationService } from '../../auth/services';
 import { Role } from '@prisma/client';
 import { User } from '@prisma/client';
-import { SignUpDto } from 'src/auth/dto';
-
+import { SignUpDto } from '../../auth/dto';
 @Injectable()
 export class UserService {
     private readonly logger = new Logger(UserService.name);
 
     constructor(
         private userRepository: UserRepository,
-        private passwordService: PasswordService,
+        @Inject(forwardRef(() => PasswordService)) private passwordService: PasswordService,
     ) { }
 
     async createUser(dto: SignUpDto): Promise<User> {

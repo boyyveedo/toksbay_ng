@@ -1,22 +1,38 @@
-import { Module } from '@nestjs/common';
-import { UserService } from './users.services';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Module, forwardRef } from '@nestjs/common';
+import { UserService } from './services/users.services';
 import { UserRepository } from './repository/user.repository';
+import { UserQueryService } from './services/users-query.services';
+import { UserMutationService } from './services/users.mutation.services';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module'; // Import AuthModule
+import { PasswordService, VerificationService } from '../auth/services';
+import { VerificationHelper, VerifyEmailHelper } from '../auth/helper';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { UserController } from './controllers/user.controller';
 
 @Module({
     imports: [
-
+        forwardRef(() => AuthModule),
     ],
-    controllers: [],
+    controllers: [UserController],
     providers: [
         UserService,
         PrismaService,
         UserRepository,
+        PasswordService,
         {
             provide: 'IUserRepository',
             useClass: UserRepository,
         },
+
+        UserMutationService,
+        UserQueryService,
     ],
-    exports: [UserService],
+    exports: [
+        UserService,
+        UserMutationService,
+        UserQueryService,
+        { provide: 'IUserRepository', useClass: UserRepository },
+    ],
 })
-export class UsersModule { }
+export class UserModule { }

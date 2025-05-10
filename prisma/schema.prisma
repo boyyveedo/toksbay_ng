@@ -41,6 +41,7 @@ enum UserStatus {
   PENDING
   ACTIVE
   SUSPENDED
+  BANNED
 }
 
 enum VerificationType {
@@ -54,6 +55,7 @@ model User {
   password    String?
   firstName   String
   lastName    String
+  profile       Profile?
   phoneNumber String?
   providerId  String?
   provider    String?
@@ -76,6 +78,8 @@ model User {
   reports          ReportedProduct[]
   verifications    Verification[]
   passwordResets   PasswordReset[]
+  sessions      Session[]
+
 
   @@unique([providerId, provider])
 }
@@ -237,4 +241,30 @@ model PasswordReset {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_resets")
+}
+
+
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String   @unique 
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+
+  @@map("sessions")
+}
+
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio         String?
+  avatar      String?  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("profiles")
 }

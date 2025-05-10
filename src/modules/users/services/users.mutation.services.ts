@@ -3,7 +3,7 @@ import { User } from '@prisma/client';
 import { CreateUserDto, UpdateUserDto } from '../dto';
 import { CreateSocialUserDto } from 'src/modules/auth/dto';
 import { IUserRepository } from '../repository/user.repository.interface';
-import { PasswordService } from 'src/auth/password.service';
+import { PasswordService } from 'src/modules/auth/services';
 import { UserQueryService } from './users-query.services';
 import { SignUpDto } from 'src/modules/auth/dto';
 

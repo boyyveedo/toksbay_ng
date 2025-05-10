@@ -3,7 +3,7 @@ import {
     UnauthorizedException,
     ForbiddenException,
 } from '@nestjs/common';
-import { UserService } from 'src/modules/users/users.services';
+import { UserService } from 'src/modules/users/services/users.services';
 import { verifyPassword } from '../helper';
 import { User } from '@prisma/client';
 

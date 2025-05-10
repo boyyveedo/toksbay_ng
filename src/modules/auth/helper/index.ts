@@ -1,1 +1,5 @@
 export * from './password.helper'
+export * from './verification.helper'
+export * from './verify-email.helper'
+export * from './send-verification.helper'
+export * from './password-reset.helper'
