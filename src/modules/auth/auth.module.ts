@@ -24,7 +24,7 @@ import { CommonModule } from 'src/common/common.module';
 @Module({
     imports: [
         CommonModule,
-        forwardRef(() => UserModule), // Use forwardRef to break circular dependency
+        forwardRef(() => UserModule), 
         JwtModule.register({}),
         EmailModule,
         PrismaModule,

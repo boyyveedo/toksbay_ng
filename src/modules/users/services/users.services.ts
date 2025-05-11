@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException, Logger, BadRequestException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import { PasswordService } from '../../auth/services';
 import { CreateUserDto, UpdateUserDto } from '../dto';
 import { CreateSocialUserDto } from '../../auth/dto';
-import { VerificationService } from '../../auth/services';
+import { SignUpDto } from '../../auth/dto';
 import { Role } from '@prisma/client';
 import { User } from '@prisma/client';
-import { SignUpDto } from '../../auth/dto';
+
 @Injectable()
 export class UserService {
     private readonly logger = new Logger(UserService.name);
@@ -16,25 +16,7 @@ export class UserService {
         @Inject(forwardRef(() => PasswordService)) private passwordService: PasswordService,
     ) { }
 
-    async createUser(dto: SignUpDto): Promise<User> {
-        if (!dto.password) {
-            throw new BadRequestException('Password is required for manual signup');
-        }
-        const hashedPassword = await this.passwordService.hashPassword(dto.password);
-        const createUserDto: CreateUserDto = {
-            email: dto.email,
-            password: hashedPassword,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            role: dto.role,
-        };
-        return this.userRepository.createUser(createUserDto);
-    }
-
-    async createSocialUser(dto: CreateSocialUserDto): Promise<User> {
-        return this.userRepository.createSocialUser(dto);
-    }
-
+    // Query methods
     async findUserByEmail(email: string): Promise<User | null> {
         return this.userRepository.findUserByEmail(email);
     }
@@ -43,11 +25,38 @@ export class UserService {
         return this.userRepository.findUserById(id);
     }
 
-    async updateUser(
-        id: string,
-        data: UpdateUserDto,
-        currentUser: User
-    ): Promise<Omit<User, 'password'>> {
+    async findAllUsers(limit: number, skip: number): Promise<User[]> {
+        return this.userRepository.findAllUsers(limit, skip);
+    }
+
+    // Mutation methods
+    async createUser(dto: SignUpDto): Promise<User> {
+        this.logger.log(`Creating user with email: ${dto.email}`);
+
+        if (!dto.password) {
+            throw new BadRequestException('Password is required for manual signup');
+        }
+
+        const hashedPassword = await this.passwordService.hashPassword(dto.password);
+        const createUserDto: CreateUserDto = {
+            email: dto.email,
+            password: hashedPassword,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: Role.CUSTOMER,
+        };
+
+        return this.userRepository.createUser(createUserDto);
+    }
+
+    async createSocialUser(dto: CreateSocialUserDto): Promise<User> {
+        this.logger.log(`Creating social user with email: ${dto.email}`);
+        return this.userRepository.createSocialUser(dto);
+    }
+
+    async updateUser(id: string, data: UpdateUserDto, currentUser: User): Promise<Omit<User, 'password'>> {
+        this.logger.log(`Updating user with ID: ${id}`);
+
         const user = await this.userRepository.findUserById(id);
         if (!user) throw new NotFoundException('User not found');
 
@@ -58,24 +67,26 @@ export class UserService {
             throw new ForbiddenException('You are not authorized to update this user');
         }
 
+        if (data.role) {
+            if ((isSelfUpdate && data.role === Role.ADMIN) || (!isAdmin && data.role === Role.ADMIN)) {
+                throw new ForbiddenException('You are not authorized to assign ADMIN role');
+            }
+        }
+
         if (!isAdmin) {
             delete data.role;
             delete data.status;
             delete data.isVerified;
         }
 
-        const updatedUser = await this.userRepository.updateUser(id, data);
-
-        return updatedUser;
+        return this.userRepository.updateUser(id, data);
     }
 
     async deleteUser(id: string): Promise<User> {
+        this.logger.log(`Deleting user with ID: ${id}`);
+
         const userExists = await this.userRepository.findUserById(id);
         if (!userExists) throw new NotFoundException('User not found');
         return this.userRepository.deleteUser(id);
-    }
-
-    async findAllUsers(limit: number, skip: number): Promise<User[]> {
-        return this.userRepository.findAllUsers(limit, skip);
     }
 }

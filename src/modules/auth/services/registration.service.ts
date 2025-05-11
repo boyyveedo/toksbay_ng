@@ -9,15 +9,14 @@ import { IRegistrationService } from '../interface';
 import { User } from '@prisma/client';
 import { CreateSocialUserDto } from '../dto';
 import { IUserRepository } from 'src/modules/users/repository/user.repository.interface';
-import { UserQueryService } from 'src/modules/users/services/users-query.services';
-import { UserMutationService } from 'src/modules/users/services/users.mutation.services';
+// import { UserQueryService } from 'src/modules/users/services/users-query.services';
+import { UserService } from 'src/modules/users/services/users.services';
 @Injectable()
 export class RegistrationService implements IRegistrationService {
     private readonly logger = new Logger(RegistrationService.name);
 
     constructor(
-        private userQueryService: UserQueryService,
-        private userMutationService: UserMutationService,
+        private userMutationService: UserService,
         private tokenService: TokenService,
         private verificationService: VerificationService,
         @Inject('IUserRepository') private userRepository: IUserRepository
@@ -26,7 +25,7 @@ export class RegistrationService implements IRegistrationService {
     async signUp(dto: SignUpDto): Promise<AuthResponseType> {
         this.logger.log(`Attempting to register user with email: ${dto.email}`);
         try {
-            const existingUser = await this.userQueryService.findUserByEmail(dto.email);
+            const existingUser = await this.userMutationService.findUserByEmail(dto.email);
             if (existingUser) {
                 this.logger.warn(`Email already in use: ${dto.email}`);
                 throw new BadRequestException('Email already in use');

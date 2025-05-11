@@ -17,15 +17,22 @@ export class VerifyEmailHelper {
         const verification = await this.prisma.verification.findFirst({
             where: { userId: code.userId, isVerified: false },
         });
+
         if (!verification) {
             this.logger.error('No unverified record found for this user or already verified');
             throw new ForbiddenException('Verification record not found or already verified.');
         }
+
         const currentTime = new Date();
+
         if (currentTime > verification.expiresAt) {
-            this.logger.error('Verification code has expired');
+            await this.prisma.verification.delete({
+                where: { id: verification.id },
+            });
+            this.logger.error('Verification code has expired and was deleted');
             throw new ForbiddenException('Verification code has expired.');
         }
+
         let isVerificationCodeValid: boolean;
         try {
             isVerificationCodeValid = await argon2.verify(verification.verificationCode, code.verificationCode);
@@ -33,15 +40,19 @@ export class VerifyEmailHelper {
             this.logger.error('Error verifying code:', error);
             throw new ForbiddenException('Invalid verification code.');
         }
+
         if (!isVerificationCodeValid) {
             this.logger.error('Invalid verification code');
             throw new ForbiddenException('Invalid verification code.');
         }
+
         this.logger.log('Verification successful, updating record...');
+
         await this.prisma.verification.update({
             where: { id: verification.id },
             data: { isVerified: true },
         });
+
         await this.prisma.user.update({
             where: { id: code.userId },
             data: {
@@ -50,6 +61,10 @@ export class VerifyEmailHelper {
             },
         });
 
+        await this.prisma.verification.delete({
+            where: { id: verification.id },
+        });
+        this.logger.log('Verification code deleted after successful verification');
 
         const updatedUser = await this.prisma.user.findUnique({
             where: { id: code.userId },

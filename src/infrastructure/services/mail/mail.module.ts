@@ -25,7 +25,7 @@ import { EmailService } from './mail.services';
                     from: 'Kolabbb',
                 },
                 template: {
-                    dir: join(process.cwd(), 'libs/mail/src/email-templates'),
+                    dir: join(process.cwd(), 'src/infrastructure/services/mail/email-templates'),
                     adapter: new EjsAdapter(),
                     options: {
                         strict: false,
