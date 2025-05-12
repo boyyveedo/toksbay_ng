@@ -11,4 +11,6 @@ export interface IUserRepository {
     updateUser(id: string, data: UpdateUserDto): Promise<User>;
     deleteUser(id: string): Promise<User>;
     findAllUsers(limit: number, skip: number): Promise<User[]>;
+    banUser(id: string): Promise<User>;
+
 }

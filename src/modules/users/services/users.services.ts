@@ -89,4 +89,13 @@ export class UserService {
         if (!userExists) throw new NotFoundException('User not found');
         return this.userRepository.deleteUser(id);
     }
+
+    async banUser(id: string): Promise<User> {
+        this.logger.log(`Deleting user with ID: ${id}`);
+        const userExists = await this.userRepository.findUserById(id);
+
+        if (!userExists) throw new NotFoundException('User not found');
+
+        return this.userRepository.banUser(id);
+    }
 }

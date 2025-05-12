@@ -3,7 +3,6 @@ import * as argon2 from 'argon2';  // Import argon2 instead of bcrypt
 import * as readline from 'readline';
 import * as dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
 const prisma = new PrismaClient();
@@ -12,7 +11,6 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-// Secret key that only you know - store this securely in .env file
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY;
 
 if (!ADMIN_SECRET_KEY) {
@@ -32,7 +30,6 @@ async function createAdminUser() {
         console.log('This tool creates an admin user with full system privileges.');
         console.log('Only authorized personnel should use this tool.\n');
 
-        // Verify admin secret key
         const providedKey = await question('Enter admin secret key: ');
 
         if (providedKey !== ADMIN_SECRET_KEY) {
@@ -40,25 +37,21 @@ async function createAdminUser() {
             process.exit(1);
         }
 
-        // Get admin user details
         const email = await question('Enter admin email: ');
         const password = await question('Enter admin password (min 8 characters): ');
         const firstName = await question('Enter admin first name: ');
         const lastName = await question('Enter admin last name: ');
 
-        // Validate input
         if (password.length < 8) {
             console.error('Error: Password must be at least 8 characters');
             process.exit(1);
         }
 
-        // Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email }
         });
 
         if (existingUser) {
-            // Update existing user to admin
             console.log(`User ${email} already exists. Updating to admin role...`);
 
             const hashedPassword = await argon2.hash(password);  // Hash password using argon2
@@ -79,8 +72,7 @@ async function createAdminUser() {
             return;
         }
 
-        // Create new admin user
-        const hashedPassword = await argon2.hash(password);  // Hash password using argon2
+        const hashedPassword = await argon2.hash(password);  
 
         const newAdmin = await prisma.user.create({
             data: {
