@@ -20,6 +20,7 @@ import { PasswordService } from './services';
 import { SocialAuthService } from './services/social-auth.service';
 import { GoogleStrategy } from './strategy/google.strategy';
 import { CommonModule } from 'src/common/common.module';
+import { RolesGuard } from 'src/common/guards';
 
 @Module({
     imports: [
@@ -61,7 +62,8 @@ import { CommonModule } from 'src/common/common.module';
         PasswordResetService,
         AuthHelper,
         SessionService,
-        SocialAuthService
+        SocialAuthService,
+
     ],
 })
 export class AuthModule { }

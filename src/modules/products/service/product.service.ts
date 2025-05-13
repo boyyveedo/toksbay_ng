@@ -6,9 +6,9 @@ import {
     Inject
 } from '@nestjs/common';
 import { CreateProductDto, FilterProductDto, UpdateProductDto } from '../dto';
-import { PRODUCT_REPOSITORY, IProductRepository } from '../interface';
+import { IProductRepository, PRODUCT_REPOSITORY } from '../interface/product.interface';
 import { Role } from '@prisma/client';
-import { Product } from '@prisma/client';
+import type { Express } from 'express';
 
 @Injectable()
 export class ProductService {
@@ -56,23 +56,19 @@ export class ProductService {
         role?: Role,
     ) {
         this.logger.log(`User ${requesterId} attempting to update product ${productId}`);
-
         const product = await this.productRepo.findOne(productId);
         if (!product) {
             this.logger.warn(`Product not found with ID: ${productId}`);
             throw new NotFoundException('Product not found');
         }
-
         const isOwner = product.sellerId === requesterId;
         const isAdmin = role === Role.ADMIN;
-
         if (!isOwner && !isAdmin) {
             this.logger.warn(
                 `Unauthorized update attempt by user ${requesterId} on product ${productId}`,
             );
             throw new ForbiddenException('Access denied');
         }
-
         const updated = await this.productRepo.update(productId, dto, files);
         this.logger.log(`Product ${productId} updated by user ${requesterId}`);
         return updated;
@@ -84,23 +80,19 @@ export class ProductService {
         role?: Role,
     ) {
         this.logger.log(`User ${requesterId} attempting to delete product ${productId}`);
-
         const product = await this.productRepo.findOne(productId);
         if (!product) {
             this.logger.warn(`Product not found with ID: ${productId}`);
             throw new NotFoundException('Product not found');
         }
-
         const isOwner = product.sellerId === requesterId;
         const isAdmin = role === Role.ADMIN;
-
         if (!isOwner && !isAdmin) {
             this.logger.warn(
                 `Unauthorized delete attempt by user ${requesterId} on product ${productId}`,
             );
             throw new ForbiddenException('Access denied');
         }
-
         const deleted = await this.productRepo.delete(productId);
         this.logger.log(`Product ${productId} deleted by user ${requesterId}`);
         return deleted;

@@ -3,16 +3,19 @@ import { ProductController } from './controllers/product.controller';
 import { ProductService } from './service/product.service';
 import { ProductRepository } from './repository/product.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { OwnershipGuard } from 'src/common/guards/ownership.guard';
 import { CommonModule } from 'src/common/common.module';
-import { PRODUCT_REPOSITORY } from './interface';
+import { PRODUCT_REPOSITORY } from './interface/product.interface';
+import { AuthModule } from '../auth /auth.module';
+
 @Module({
-    imports: [CommonModule],
+    imports: [
+        CommonModule,
+        AuthModule,
+    ],
     controllers: [ProductController],
     providers: [
         ProductService,
         PrismaService,
-        OwnershipGuard,
         {
             provide: PRODUCT_REPOSITORY,
             useClass: ProductRepository,

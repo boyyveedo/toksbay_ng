@@ -9,10 +9,12 @@ import { PasswordService, VerificationService } from '../auth /services';
 import { VerificationHelper, VerifyEmailHelper } from '../auth /helper';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserController } from './controllers/user.controller';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
     imports: [
         forwardRef(() => AuthModule),
+        CommonModule,
     ],
     controllers: [UserController],
     providers: [

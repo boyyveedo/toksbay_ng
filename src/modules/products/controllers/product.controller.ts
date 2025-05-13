@@ -21,7 +21,7 @@ import { GetUser } from 'src/common/decorators';
 
 
 @Controller('products')
-@UseGuards(AuthGuard, RolesGuard)
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class ProductController {
     constructor(private readonly productService: ProductService) { }
 

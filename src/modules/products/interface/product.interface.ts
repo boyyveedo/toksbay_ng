@@ -2,7 +2,10 @@ import { Product } from '@prisma/client';
 import { CreateProductDto, FilterProductDto, UpdateProductDto } from '../dto';
 import type { Express } from 'express';
 
-export type ProductWithImages = Product & { images: { id: string; url: string; productId: string }[] };
+export type ProductWithImages = Product & {
+    images: { id: string; url: string; productId: string }[]
+};
+
 export const PRODUCT_REPOSITORY = 'PRODUCT_REPOSITORY';
 
 export interface IProductRepository {
