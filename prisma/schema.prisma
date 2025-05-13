@@ -84,21 +84,29 @@ model User {
   @@unique([providerId, provider])
 }
 
+model Category {
+  id        String    @id @default(uuid()) @map("id")
+  name      String    @unique @map("name")
+  slug      String    @unique @map("slug")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  products  Product[]
+}
+
 model Product {
   id            String    @id @default(uuid()) @map("id")
   title         String    @map("title")
   description   String    @map("description")
   price         Decimal   @map("price") @db.Decimal(10, 2)
   discountPrice Decimal?  @map("discount_price") @db.Decimal(10, 2)
-  category      String    @map("category")
   brand         String?   @map("brand")
   condition     Condition @default(USED) @map("condition")
-  sku           String?   @unique @map("sku")
-  stock         Int       @default(0) @map("stock")
-  weight        Float?    @map("weight")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
-
+  categoryId    String    @map("category_id")
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   // Relations
   seller     User              @relation("SellerProducts", fields: [sellerId], references: [id], onDelete: Cascade)
   sellerId   String            @map("seller_id")
