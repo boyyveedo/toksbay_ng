@@ -25,7 +25,7 @@ import { GetUser } from 'src/common/decorators';
 export class ProductController {
     constructor(private readonly productService: ProductService) { }
 
-    @Post()
+    @Post('create')
     @Roles(Role.ADMIN, Role.CUSTOMER)
     @UseInterceptors(FilesInterceptor('images', 5))
     createProduct(
@@ -46,7 +46,7 @@ export class ProductController {
         return this.productService.getProductById(id);
     }
 
-    @Put(':id')
+    @Put(':id/edit')
     @Roles(Role.ADMIN, Role.CUSTOMER)
     updateProduct(
         @GetUser('id') sellerId: string,

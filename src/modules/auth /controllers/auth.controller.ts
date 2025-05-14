@@ -9,6 +9,7 @@ import {
     HttpStatus,
     UseGuards,
     UnauthorizedException,
+    Logger
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from '../services';
@@ -26,6 +27,9 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
+
+
+    private readonly logger = new Logger(AuthController.name)
     constructor(
         private readonly authService: AuthService,
         private readonly verificationService: VerificationService,
@@ -38,7 +42,13 @@ export class AuthController {
     @Post('signup')
     @HttpCode(HttpStatus.CREATED)
     async signUp(@Body() dto: SignUpDto): Promise<AuthResponseType> {
-        return this.registrationService.signUp(dto);
+        this.logger.log('Signup route hit');
+        try {
+            return this.registrationService.signUp(dto);
+        } catch (error) {
+            this.logger.error('Signup error:', error.message);
+            throw error;
+        }
     }
 
     @Post('signin')

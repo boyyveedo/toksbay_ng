@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth /auth.module';
 import { UserModule } from './modules/users /users.module';
 import { ProductModule } from './modules/products/products.module';
-import { CategoryModule } from './modules/categoriess/category.module';
+import { CategoryModule } from './modules/categories/categories.module';
 import { CartModule } from './modules/cart/cart.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';

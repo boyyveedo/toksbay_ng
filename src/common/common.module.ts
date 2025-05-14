@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+// import { APP_GUARD } from '@nestjs/core';
 
 import { CloudinaryService } from './cloudinary/cloudinary.service';
 
@@ -19,16 +19,16 @@ import { VerifiedUserGuard } from './guards/verified-user.guard';
 
         VerifiedUserGuard,
 
-        // Only register truly global guards
-        {
-            provide: APP_GUARD,
-            useClass: JwtAuthGuard, // Keep auth as global
-        },
-        {
-            provide: APP_GUARD,
-            useClass: RolesGuard, // Keep roles as global if needed
-        },
-        // Remove the other global registrations
+        // // Only register truly global guards
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: JwtAuthGuard, // Keep auth as global
+        // },
+        // {
+        //     provide: APP_GUARD,
+        //     useClass: RolesGuard, // Keep roles as global if needed
+        // },
+        // // Remove the other global registrations
     ],
     exports: [
         // Keep all exports
@@ -36,7 +36,7 @@ import { VerifiedUserGuard } from './guards/verified-user.guard';
         JwtAuthGuard,
         JwtRefreshGuard,
         RolesGuard,
-
+        
         VerifiedUserGuard,
     ],
 })

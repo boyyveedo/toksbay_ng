@@ -1,17 +1,16 @@
-// category.module.ts
 import { Module } from '@nestjs/common';
-import { CategoryController } from './controller/category.controller';
-import { CategoryService } from './services/category.services';
+import { CategoryService } from './service/category.service';
 import { CategoryRepository } from './repository/category.repository';
+import { CategoryController } from './controller/category.controller';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { CommonModule } from 'src/common/common.module';
+import { CATEGORY_REPOSITORY } from './interface/category.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CATEGORY_REPOSITORY } from './dto/interface/category.interface';
 import { AuthModule } from '../auth /auth.module';
-
 @Module({
-    imports: [AuthModule],
+    imports: [AuthModule, PrismaModule, CommonModule],
     controllers: [CategoryController],
-    providers: [
-        CategoryService,
+    providers: [CategoryService,
         PrismaService,
         {
             provide: CATEGORY_REPOSITORY,
