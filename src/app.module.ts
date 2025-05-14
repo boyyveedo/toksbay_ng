@@ -22,7 +22,7 @@ import { CommonModule } from './common/common.module';
       validationSchema: envValidationSchema,
 
     }),
-    AuthModule, UserModule, ProductModule, CategoryModule, CartModule, OrdersModule, PaymentsModule, ReviewsModule, SharedModule, PrismaModule, CommonModule],
+    AuthModule, UserModule, ProductModule, CategoryModule, CartModule, OrdersModule, PaymentsModule, ReviewsModule, SharedModule, PrismaModule, CommonModule, CartModule],
   controllers: [AppController],
   providers: [AppService],
 })
