@@ -1,17 +1,12 @@
 import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 
 export class AddressDto {
-  @IsString()
-  @IsNotEmpty()
-  fullName: string;
+
 
   @IsString()
   @IsNotEmpty()
-  addressLine1: string;
+  street: string; 
 
-  @IsString()
-  @IsOptional()
-  addressLine2?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -29,7 +24,5 @@ export class AddressDto {
   @IsNotEmpty()
   country: string;
 
-  @IsString()
-  @IsNotEmpty()
-  phoneNumber: string;
+
 }

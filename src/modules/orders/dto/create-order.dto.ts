@@ -18,6 +18,10 @@ export class CreateOrderDto {
     @IsEnum(PaymentType)
     @IsOptional()
     paymentType?: PaymentType;
+
+    @IsString() 
+    @IsNotEmpty()
+    userId: string;  
   }
 
   

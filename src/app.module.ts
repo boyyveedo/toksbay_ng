@@ -6,7 +6,7 @@ import { UserModule } from './modules/users /users.module';
 import { ProductModule } from './modules/products/products.module';
 import { CategoryModule } from './modules/categories/categories.module';
 import { CartModule } from './modules/cart/cart.module';
-import { OrdersModule } from './modules/orders/orders.module';
+import { OrderModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { SharedModule } from './modules/shared/shared.module';
@@ -22,7 +22,7 @@ import { CommonModule } from './common/common.module';
       validationSchema: envValidationSchema,
 
     }),
-    AuthModule, UserModule, ProductModule, CategoryModule, CartModule, OrdersModule, PaymentsModule, ReviewsModule, SharedModule, PrismaModule, CommonModule, CartModule],
+    AuthModule, UserModule, ProductModule, CategoryModule, CartModule, OrderModule, PaymentsModule, ReviewsModule, SharedModule, PrismaModule, CommonModule, CartModule],
   controllers: [AppController],
   providers: [AppService],
 })
