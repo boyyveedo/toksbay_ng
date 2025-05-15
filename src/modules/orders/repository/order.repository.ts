@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { OrderWithItems, IOrderRepository } from '../interface/order.interface';
 import { CreateOrderDto } from '../dto';
-import { Order, OrderStatus, DeliveryStatus } from '@prisma/client';
+import { OrderStatus, DeliveryStatus } from '@prisma/client';
 
 @Injectable()
 export class OrderRepository implements IOrderRepository {
@@ -32,22 +32,31 @@ export class OrderRepository implements IOrderRepository {
   }
 
   async create(userId: string, dto: CreateOrderDto): Promise<OrderWithItems> {
-    const productIds = dto.items.map(item => item.productId);
-    const products = await this.prisma.product.findMany({
-      where: { id: { in: productIds } },
-    });
-
-    const address = await this.prisma.address.create({
-        data: {
-          ...dto.address,
-          user: { connect: { id: userId } },
+    const cart = await this.prisma.cart.findFirst({
+        where: { userId },
+        include: {
+          items: {
+            include: {
+              product: true, 
+            },
+          },
         },
       });
       
-    const totalAmount = dto.items.reduce((total, item) => {
-      const product = products.find(p => p.id === item.productId);
-      if (!product) throw new Error(`Product with ID ${item.productId} not found`);
-      return total + Number(product.price) * item.quantity;
+
+      if (!cart || cart.items.length === 0) {
+        throw new HttpException('Cart is empty. Cannot place order.', HttpStatus.BAD_REQUEST);
+      }
+
+    const address = await this.prisma.address.create({
+      data: {
+        ...dto.address,
+        user: { connect: { id: userId } },
+      },
+    });
+
+    const totalAmount = cart.items.reduce((total, item) => {
+      return total + Number(item.product.price) * item.quantity;
     }, 0);
 
     const order = await this.prisma.order.create({
@@ -57,18 +66,18 @@ export class OrderRepository implements IOrderRepository {
         totalAmount,
         paymentType: dto.paymentType || 'CARD',
         items: {
-          create: dto.items.map(item => {
-            const product = products.find(p => p.id === item.productId);
-            if (!product) throw new Error(`Product with ID ${item.productId} not found`);
-            return {
-              productId: item.productId,
-              quantity: item.quantity,
-              price: product.price,
-            };
-          }),
+          create: cart.items.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.product.price,
+          })),
         },
       },
       include: this.defaultIncludes(false),
+    });
+
+    await this.prisma.cartItem.deleteMany({
+      where: { cartId: cart.id },
     });
 
     return this.mapToOrderWithItems(order);
@@ -116,11 +125,11 @@ export class OrderRepository implements IOrderRepository {
       ...(includePayment ? { payment: true } : {}),
     };
   }
-  
+
   private mapToOrderWithItems(order: any): OrderWithItems {
     return {
       ...order,
-      totalAmount: Number(order.totalAmount), // ✅ ensure it's a number
+      totalAmount: Number(order.totalAmount),
       items: order.items.map(item => ({
         id: item.id,
         productId: item.productId,
@@ -130,5 +139,4 @@ export class OrderRepository implements IOrderRepository {
       })),
     };
   }
-  
 }
