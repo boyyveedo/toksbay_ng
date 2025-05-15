@@ -25,7 +25,7 @@ import { AuthResponseType, RequestPasswordResetResponse, ResetPasswordResponse, 
 
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
 
 

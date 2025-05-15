@@ -11,7 +11,7 @@ import { Roles } from 'src/common/decorators';
 import { Role } from '@prisma/client';
 import { UserResponseDto } from '../types';
 
-@Controller('users')
+@Controller('api/v1/users')
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
