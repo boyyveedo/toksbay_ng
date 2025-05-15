@@ -33,7 +33,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Swagger setup
+  // Swagger setup full
   const config = new DocumentBuilder()
     .setTitle('Toksbay API')
     .setDescription('API documentation')
