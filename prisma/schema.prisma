@@ -180,6 +180,7 @@ model Payment {
   orderId     String      @unique @map("order_id")
   amount      Decimal     @map("amount") @db.Decimal(10, 2)
   status      String      @map("status")
+  reference   String?     @unique @map("reference") 
   paymentType PaymentType @default(CARD) @map("payment_type")
   createdAt   DateTime    @default(now()) @map("created_at")
 }
