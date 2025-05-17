@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import { PasswordService } from 'src/modules/auth /services';
-import { CreateUserDto, UpdateUserDto } from '../dto';
+import { CreateUserDto, UpdateUserDto, CreateAdminDto } from '../dto';
 import { CreateSocialUserDto } from 'src/modules/auth /dto';
 import { SignUpDto } from 'src/modules/auth /dto';
 import { Role } from '@prisma/client';
@@ -97,5 +97,35 @@ export class UserService {
         if (!userExists) throw new NotFoundException('User not found');
 
         return this.userRepository.banUser(id);
+    }
+
+
+    async createAdminUser(dto: CreateAdminDto): Promise<User> {
+        this.logger.log(`Creating admin user with email: ${dto.email}`);
+
+        if (dto.secretKey !== process.env.ADMIN_SECRET_KEY) {
+            throw new BadRequestException('Invalid admin secret key');
+        }
+
+        const existingUser = await this.userRepository.findUserByEmail(dto.email);
+        if (existingUser) {
+            throw new BadRequestException('User with this email already exists');
+        }
+
+        const hashedPassword = await this.passwordService.hashPassword(dto.password);
+
+        const createAdminDto = {
+            email: dto.email,
+            password: hashedPassword,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: Role.ADMIN,
+            status: 'ACTIVE',  
+            isVerified: true, 
+            secretKey: dto.secretKey, 
+
+        };
+
+        return this.userRepository.createAdminUser(createAdminDto);
     }
 }

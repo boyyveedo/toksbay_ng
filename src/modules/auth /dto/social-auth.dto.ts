@@ -1,21 +1,28 @@
-import { IsEmail, IsString, IsBoolean, IsOptional } from 'class-validator';
+import { IsEmail, IsString, IsBoolean } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSocialUserDto {
-    @IsEmail()
-    email: string;
+  @ApiProperty({ example: 'user@example.com' })
+  @IsEmail()
+  email: string;
 
-    @IsString()
-    firstName: string;
+  @ApiProperty({ example: 'John' })
+  @IsString()
+  firstName: string;
 
-    @IsString()
-    lastName: string;
+  @ApiProperty({ example: 'Doe' })
+  @IsString()
+  lastName: string;
 
-    @IsString()
-    providerId: string;
+  @ApiProperty({ example: 'google-uid-12345' })
+  @IsString()
+  providerId: string;
 
-    @IsString()
-    provider: string;
+  @ApiProperty({ example: 'google' })
+  @IsString()
+  provider: string;
 
-    @IsBoolean()
-    isEmailVerified: boolean;
+  @ApiProperty({ example: true })
+  @IsBoolean()
+  isEmailVerified: boolean;
 }

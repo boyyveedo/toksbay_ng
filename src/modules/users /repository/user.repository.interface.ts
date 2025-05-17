@@ -1,8 +1,9 @@
 import { User } from '@prisma/client';
-import { CreateUserDto, UpdateUserDto } from '../dto';
+import { CreateUserDto, UpdateUserDto, CreateAdminDto } from '../dto';
 import { CreateSocialUserDto } from 'src/modules/auth /dto';
 
 export interface IUserRepository {
+    createAdminUser(dto: CreateAdminDto): Promise<User>;
     createUser(dto: CreateUserDto): Promise<User>;
     createSocialUser(dto: CreateSocialUserDto): Promise<User>;
     findUserByEmail(email: string): Promise<User | null>;

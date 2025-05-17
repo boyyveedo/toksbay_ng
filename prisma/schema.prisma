@@ -59,6 +59,7 @@ model User {
   lastName    String
   profile       Profile?
   phoneNumber String?
+  secretKey   String?  
   providerId  String?
   provider    String?
   role        Role       @default(CUSTOMER)

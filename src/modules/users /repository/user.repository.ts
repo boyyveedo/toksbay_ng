@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDto, UpdateUserDto } from '../dto';
+import { CreateUserDto, UpdateUserDto, CreateAdminDto } from '../dto';
 import { CreateSocialUserDto } from 'src/modules/auth /dto';
 import { UserStatus } from '@prisma/client';
-import { User } from '@prisma/client';
+import { User, Role } from '@prisma/client';
 
 @Injectable()
 export class UserRepository {
@@ -16,7 +16,7 @@ export class UserRepository {
     }
 
     async createSocialUser(dto: CreateSocialUserDto): Promise<User> {
-        const existingUser = await this.findUserByEmail(dto.email);
+        const existingUser = await this.findUserByEmail(dto.email);  
         if (existingUser) {
             return existingUser;
         }
@@ -102,4 +102,18 @@ export class UserRepository {
             data: { status: 'BANNED' },
         });
     }
+
+
+    async createAdminUser(dto: CreateAdminDto): Promise<User> {
+        const data = {
+          ...dto,
+          role: Role.ADMIN, 
+          status: UserStatus.ACTIVE, 
+          isVerified: true, 
+        };
+    
+        return this.prisma.user.create({
+          data,
+        });
+      }
 }

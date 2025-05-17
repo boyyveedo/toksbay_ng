@@ -2,7 +2,7 @@ import {
     Controller, Post, Body, Get, Param, Put, Delete, UseGuards, Query, Patch
   } from '@nestjs/common';
   import { UserService } from '../services/users.services';
-  import { CreateUserDto, UpdateUserDto } from '../dto';
+  import { CreateUserDto, UpdateUserDto, CreateAdminDto } from '../dto';
   import { User } from '@prisma/client';
   import { JwtAuthGuard, VerifiedUserGuard } from 'src/common/guards';
   import { GetUser } from 'src/common/decorators';
@@ -10,9 +10,9 @@ import {
   import { Roles } from 'src/common/decorators';
   import { Role } from '@prisma/client';
   import { UserResponseDto } from '../types';
-  import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';  // Import Swagger decorators
+  import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';  
   
-  @ApiTags('Users')  // Tags the controller for grouping in Swagger UI
+  @ApiTags('Users')  
   @Controller('api/v1/users')
   export class UserController {
     constructor(private readonly userService: UserService) {}
@@ -52,7 +52,7 @@ import {
     @ApiOperation({ summary: 'Update User Information' })
     @ApiResponse({ status: 200, description: 'User updated successfully.', type: UserResponseDto })
     @ApiParam({ name: 'id', type: String, description: 'User ID' })
-    @ApiBody({ type: UpdateUserDto })  // Add @ApiBody() to specify the request body
+    @ApiBody({ type: UpdateUserDto })  
     async updateUser(
       @Param('id') id: string,
       @Body() updateUserDto: UpdateUserDto,
@@ -70,6 +70,18 @@ import {
     async deleteUser(@Param('id') id: string) {
       return this.userService.deleteUser(id);
     }
+
+  @Roles(Role.ADMIN)
+  @Post('create-admin')
+  @ApiOperation({ summary: 'Create Admin User' })
+  @ApiBody({ type: CreateAdminDto })
+  @ApiResponse({ status: 201, description: 'Admin user created successfully.', type: UserResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid admin secret key.' })
+  async createAdmin(
+    @Body() createAdminDto: CreateAdminDto
+  ): Promise<UserResponseDto> {
+    return this.userService.createAdminUser(createAdminDto);
+  }
   
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
@@ -77,7 +89,7 @@ import {
     @ApiOperation({ summary: 'Ban User' })
     @ApiResponse({ status: 200, description: 'User banned successfully.' })
     @ApiParam({ name: 'id', type: String, description: 'User ID' })
-    @ApiBody({ type: UpdateUserDto })  // Add @ApiBody() to specify the request body for PATCH (if applicable)
+    @ApiBody({ type: UpdateUserDto })  
     async ban(@Param('id') id: string) {
       return this.userService.banUser(id);
     }
