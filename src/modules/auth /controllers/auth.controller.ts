@@ -130,20 +130,24 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Google Authentication Callback' })
-  @ApiResponse({ status: 200, description: 'Authentication successful. Returns tokens and user.' })
+  @ApiResponse({ status: 302, description: 'Redirects to frontend with authentication tokens' })
   @ApiResponse({ status: 401, description: 'Google Authentication failed.' })
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    this.logger.log('Google auth callback reached');
+    
     if (!req.user) {
+      this.logger.error('Authentication failed: No user in request');
       return res.status(401).json({ message: 'Authentication failed' });
     }
 
-    const user = req.user as User;
-    const authResult = await this.socialAuthService.handleSocialLogin(user);
-
-    return res.status(200).json({
-      accessToken: authResult.accessToken,
-      refreshToken: authResult.refreshToken,
-      user: user,
-    });
+    try {
+      const user = req.user as User;
+      const authResult = await this.socialAuthService.handleSocialLogin(user);
+      
+      return res.redirect(`https://Localhost:5173/auth/google/callback?token=${authResult.accessToken}`);
+    } catch (error) {
+      this.logger.error(`Google auth callback error: ${error.message}`);
+      return res.status(500).json({ message: 'Authentication processing failed' });
+    }
   }
 }

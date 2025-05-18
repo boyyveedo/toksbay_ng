@@ -28,7 +28,6 @@ export class AuthHelper {
 
         const resetToken = crypto.randomBytes(32).toString("hex");
 
-        // Delete existing non-expired reset tokens
         await this.prisma.passwordReset.deleteMany({
             where: {
                 userId: user.id,
@@ -40,7 +39,7 @@ export class AuthHelper {
             data: {
                 userId: user.id,
                 resetToken,
-                expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+                expiresAt: new Date(Date.now() + 60 * 60 * 1000), 
             },
         });
 
