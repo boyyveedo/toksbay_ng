@@ -67,7 +67,7 @@ export class RegistrationService implements IRegistrationService {
 
             throw error;
         }
-    }
+    } 
 
     async findOrCreateSocialUser(userData: {
         email: string;
