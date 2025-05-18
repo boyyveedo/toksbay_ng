@@ -15,15 +15,17 @@ import { IRegistrationService } from '../interface';
 import { User } from '@prisma/client';
 import { IUserRepository } from 'src/modules/users /repository/user.repository.interface';
 import { UserService } from 'src/modules/users /services/users.services';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class RegistrationService implements IRegistrationService {
     private readonly logger = new Logger(RegistrationService.name);
 
     constructor(
-        private userMutationService: UserService,
-        private tokenService: TokenService,
-        private verificationService: VerificationService,
+        private readonly prisma : PrismaService,
+        private  readonly userMutationService: UserService,
+        private readonly tokenService: TokenService,
+        private  readonly verificationService: VerificationService,
         @Inject('IUserRepository') private userRepository: IUserRepository,
     ) { }
 
@@ -48,7 +50,6 @@ export class RegistrationService implements IRegistrationService {
                 user.role,
             );
 
-            // Send verification email using full User entity (not DTO)
             await this.verificationService.sendVerificationEmail(user);
 
             return {
@@ -74,30 +75,52 @@ export class RegistrationService implements IRegistrationService {
         lastName: string;
         providerId: string;
         provider: string;
-    }): Promise<User> {
+      }): Promise<User> {
         this.logger.log(`Looking up social user with ${userData.provider} ID: ${userData.providerId}`);
-
+        
         let user = await this.userRepository.findSocialUser(userData.providerId, userData.provider);
-
+        
         if (!user) {
+          user = await this.userRepository.findUserByEmail(userData.email);
+          
+          if (user) {
+            user = await this.prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  providerId: userData.providerId,
+                  provider: userData.provider,
+                  isVerified: true ,
+                  status: "ACTIVE"
+                  
+                }
+              });
+            this.logger.log(`Connected existing user ${user.email} to ${userData.provider}`);
+          } else {
             const socialUserDto: CreateSocialUserDto = {
-                email: userData.email,
-                firstName: userData.firstName,
-                lastName: userData.lastName,
-                providerId: userData.providerId,
-                provider: userData.provider,
-                isEmailVerified: false,
+              email: userData.email,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              providerId: userData.providerId,
+              provider: userData.provider,
+              isEmailVerified: true, 
             };
-
+            
             user = await this.userMutationService.createSocialUser(socialUserDto);
+            if (user.status !== 'ACTIVE') {
+                user = await this.prisma.user.update({
+                  where: { id: user.id },
+                  data: { 
+                    status: 'ACTIVE',
+                    isVerified: true
+                  }
+                });
+              }
             this.logger.log(`Created new user from ${userData.provider} with ID: ${user.id}`);
-
-            if (!user.isVerified) {
-                await this.verificationService.sendVerificationEmail(user);
-                this.logger.log(`Verification email sent to user ${user.email}`);
-            }
+            
+           
+          }
         }
-
+        
         return user;
-    }
+      }
 }

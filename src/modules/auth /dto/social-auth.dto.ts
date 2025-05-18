@@ -25,4 +25,6 @@ export class CreateSocialUserDto {
   @ApiProperty({ example: true })
   @IsBoolean()
   isEmailVerified: boolean;
+
+  
 }
