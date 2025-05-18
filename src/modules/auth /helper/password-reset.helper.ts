@@ -44,8 +44,9 @@ export class AuthHelper {
             },
         });
 
-        const resetLink = `${this.configService.get("FRONTEND_URL")}/reset-password?token=${resetToken}`;
-
+        const frontendUrl = this.configService.get("FRONTEND_URL") || "http://localhost:3000";
+        const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+        
         try {
             await this.emailService.sendVerificationEmail({
                 subject: "Password Reset Request",

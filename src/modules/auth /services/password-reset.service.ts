@@ -56,7 +56,7 @@ export class PasswordResetService {
 
         const resetLink = `${this.configService.get(
             'FRONTEND_URL',
-        )}/reset-password?token=${resetToken}`;
+        )}/resetpassword?token=${resetToken}`;
 
         try {
             await this.emailService.sendVerificationEmail({

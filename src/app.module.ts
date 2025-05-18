@@ -20,9 +20,23 @@ import { PaymentModule } from './modules/payments/payments.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: envValidationSchema,
-
+      load: [() => ({
+        FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+      })],
     }),
-    AuthModule, UserModule, ProductModule, CategoryModule, CartModule, OrderModule, PaymentModule, ReviewsModule, SharedModule, PrismaModule, CommonModule, CartModule],
+    AuthModule, 
+    UserModule, 
+    ProductModule, 
+    CategoryModule, 
+    CartModule, 
+    OrderModule, 
+    PaymentModule, 
+    ReviewsModule, 
+    SharedModule, 
+    PrismaModule, 
+    CommonModule, 
+    CartModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
