@@ -1,22 +1,22 @@
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-import { PaymentType,  } from '@prisma/client';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AddressDto } from './address.dto';
-
+import { Type } from 'class-transformer';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { PaymentType } from '@prisma/client';
 
 export class CreateOrderDto {
-    @ValidateNested()
-    @Type(() => AddressDto)
-    address: AddressDto;
-  
-  
-    @IsEnum(PaymentType)
-    @IsOptional()
-    paymentType?: PaymentType;
+  @ApiProperty({ type: AddressDto })
+  @ValidateNested()
+  @Type(() => AddressDto)
+  address: AddressDto;
 
-    @IsString() 
-    @IsNotEmpty()
-    userId: string;  
-  }
+  @ApiPropertyOptional({ enum: PaymentType })
+  @IsEnum(PaymentType)
+  @IsOptional()
+  paymentType?: PaymentType;
 
-  
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+}

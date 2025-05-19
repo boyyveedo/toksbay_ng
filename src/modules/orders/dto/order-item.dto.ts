@@ -1,14 +1,14 @@
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
-
-
+import { ApiProperty } from '@nestjs/swagger';
+import { IsUUID, IsNotEmpty, IsNumber, Min } from 'class-validator';
 
 export class OrderItemDto {
-    @IsUUID()
-    @IsNotEmpty()
-    productId: string;
-  
-    @IsNumber()
-    @Min(1)
-    quantity: number;
-  }
-  
+  @ApiProperty()
+  @IsUUID()
+  @IsNotEmpty()
+  productId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @Min(1)
+  quantity: number;
+}

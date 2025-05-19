@@ -1,13 +1,40 @@
-// dto/filter-product.dto.ts
 import { IsOptional, IsString, IsEnum, IsNumberString } from 'class-validator';
 import { Condition } from '@prisma/client';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class FilterProductDto {
-    @IsOptional() @IsString() search?: string;
-    @IsOptional() @IsString() categoryId?: string;
-    @IsOptional() @IsEnum(Condition) condition?: Condition;
-    @IsOptional() @IsNumberString() limit?: string;
-    @IsOptional() @IsNumberString() offset?: string;
-    @IsOptional() @IsString() sortBy?: 'createdAt' | 'price';
-    @IsOptional() @IsString() sortOrder?: 'asc' | 'desc';
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    search?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    categoryId?: string;
+
+    @ApiPropertyOptional({ enum: Condition })
+    @IsOptional()
+    @IsEnum(Condition)
+    condition?: Condition;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumberString()
+    limit?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumberString()
+    offset?: string;
+
+    @ApiPropertyOptional({ enum: ['createdAt', 'price'] })
+    @IsOptional()
+    @IsString()
+    sortBy?: 'createdAt' | 'price';
+
+    @ApiPropertyOptional({ enum: ['asc', 'desc'] })
+    @IsOptional()
+    @IsString()
+    sortOrder?: 'asc' | 'desc';
 }

@@ -14,32 +14,50 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser, Roles } from 'src/common/decorators';
 import { RolesGuard } from 'src/common/guards';
 import { Role, User } from '@prisma/client';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiParam,
+} from '@nestjs/swagger';
 
-
-
+@ApiTags('Categories')
 @Controller('categories')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CategoryController {
-    constructor(private readonly categoryService: CategoryService) { }
+    constructor(private readonly categoryService: CategoryService) {}
 
     @Post('create')
     @Roles(Role.ADMIN)
+    @ApiOperation({ summary: 'Create a new category (Admin only)' })
+    @ApiResponse({ status: 201, description: 'Category successfully created' })
+    @ApiResponse({ status: 403, description: 'Forbidden. Only Admins can create categories.' })
     create(@Body() dto: CreateCategoryDto, @GetUser() user: User) {
         return this.categoryService.create(dto, user);
     }
 
     @Get()
+    @ApiOperation({ summary: 'Get all categories' })
+    @ApiResponse({ status: 200, description: 'List of all categories' })
     findAll() {
         return this.categoryService.findAll();
     }
 
     @Get(':id')
+    @ApiOperation({ summary: 'Get a category by ID' })
+    @ApiParam({ name: 'id', description: 'Category ID' })
+    @ApiResponse({ status: 200, description: 'Category found' })
+    @ApiResponse({ status: 404, description: 'Category not found' })
     findById(@Param('id') id: string) {
         return this.categoryService.findById(id);
     }
 
     @Patch(':id')
     @Roles(Role.ADMIN)
+    @ApiOperation({ summary: 'Update a category by ID (Admin only)' })
+    @ApiParam({ name: 'id', description: 'Category ID' })
+    @ApiResponse({ status: 200, description: 'Category updated successfully' })
+    @ApiResponse({ status: 403, description: 'Forbidden. Only Admins can update categories.' })
     update(
         @Param('id') id: string,
         @Body() dto: UpdateCategoryDto,
@@ -50,6 +68,10 @@ export class CategoryController {
 
     @Delete(':id')
     @Roles(Role.ADMIN)
+    @ApiOperation({ summary: 'Delete a category by ID (Admin only)' })
+    @ApiParam({ name: 'id', description: 'Category ID' })
+    @ApiResponse({ status: 200, description: 'Category deleted successfully' })
+    @ApiResponse({ status: 403, description: 'Forbidden. Only Admins can delete categories.' })
     delete(@Param('id') id: string, @GetUser() user: User) {
         return this.categoryService.delete(id, user);
     }

@@ -57,7 +57,6 @@ export class PaymentController {
     @Headers('x-paystack-signature') signature: string,
     @Body() payload: any,
   ) {
-    // Verify the signature first
     if (!this.paystackService.verifyWebhookSignature(payload, signature)) {
       throw new UnauthorizedException('Invalid webhook signature');
     }

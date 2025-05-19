@@ -1,7 +1,9 @@
-import { DeliveryStatus } from "@prisma/client";
-import { IsEnum,  } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum } from 'class-validator';
+import { DeliveryStatus } from '@prisma/client';
 
 export class UpdateDeliveryStatusDto {
-    @IsEnum(DeliveryStatus)
-    status: DeliveryStatus;
-  }
+  @ApiProperty({ enum: DeliveryStatus })
+  @IsEnum(DeliveryStatus)
+  status: DeliveryStatus;
+}
