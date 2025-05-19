@@ -144,7 +144,7 @@ export class AuthController {
       const user = req.user as User;
       const authResult = await this.socialAuthService.handleSocialLogin(user);
       
-      return res.redirect(`https://Localhost:5173/auth/google/callback?token=${authResult.accessToken}`);
+      return res.redirect(`http://Localhost:5173/auth/google/callback?token=${authResult.accessToken}`);
     } catch (error) {
       this.logger.error(`Google auth callback error: ${error.message}`);
       return res.status(500).json({ message: 'Authentication processing failed' });
