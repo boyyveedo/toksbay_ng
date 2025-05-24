@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto, CreateAdminDto } from '../dto';
 import { CreateSocialUserDto } from 'src/modules/auth /dto';
 import { UserStatus } from '@prisma/client';
 import { User, Role } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+
 
 @Injectable()
 export class UserRepository {
@@ -107,13 +109,21 @@ export class UserRepository {
     async createAdminUser(dto: CreateAdminDto): Promise<User> {
         const data = {
           ...dto,
-          role: Role.ADMIN, 
-          status: UserStatus.ACTIVE, 
-          isVerified: true, 
+          role: Role.ADMIN,
+          status: UserStatus.ACTIVE,
+          isVerified: true,
         };
-    
-        return this.prisma.user.create({
-          data,
-        });
+      
+        try {
+          return await this.prisma.user.create({ data });
+        } catch (error) {
+          if (
+            error instanceof PrismaClientKnownRequestError &&
+            error.code === 'P2002'
+          ) {
+            throw new ConflictException(`Email ${dto.email} already exists.`);
+          }
+          throw error;
+        }
       }
 }
