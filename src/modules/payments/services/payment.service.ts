@@ -18,7 +18,6 @@ export class PaymentService {
   ) {}
 
   async initializePayment(userId: string, orderId: string, dto: InitializePaymentDto): Promise<PaymentInitializeResponse> {
-    // Check if order exists and belongs to user
     const order = await this.prisma.order.findUnique({
       where: { id: orderId, userId },
       include: { user: true },

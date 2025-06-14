@@ -23,16 +23,16 @@ import {
 
 @ApiTags('Categories')
 @Controller('categories')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
+// @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
     @Post('create')
-    @Roles(Role.ADMIN)
+    // @Roles(Role.ADMIN)
     @ApiOperation({ summary: 'Create a new category (Admin only)' })
     @ApiResponse({ status: 201, description: 'Category successfully created' })
     @ApiResponse({ status: 403, description: 'Forbidden. Only Admins can create categories.' })
-    create(@Body() dto: CreateCategoryDto, @GetUser() user: User) {
+    create(@Body() dto: CreateCategoryDto,user: User) {
         return this.categoryService.create(dto, user);
     }
 

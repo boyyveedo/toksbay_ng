@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   toksbay_dev:
     image: postgres:13
@@ -20,6 +21,23 @@ services:
       POSTGRES_USER: toksbay
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: toks_test
+    networks:
+      - toks_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: toksbay_app
+    ports:
+      - "7070:7070"
+    env_file:
+      - .env
+    environment:
+      # Override the DATABASE_URL for Docker network
+      DATABASE_URL: postgresql://toksbay:123@toksbay_dev:5432/toks_dev?schema=public
+    depends_on:
+      - toksbay_dev
     networks:
       - toks_network
 
