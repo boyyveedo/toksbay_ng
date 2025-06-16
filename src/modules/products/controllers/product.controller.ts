@@ -31,7 +31,7 @@ import {
 
 @ApiTags('Products')
 @Controller('products')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
+// @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class ProductController {
     constructor(private readonly productService: ProductService) {}
 

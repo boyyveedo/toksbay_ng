@@ -20,7 +20,7 @@ export class TokenService {
                 },
                 {
                     secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-                    expiresIn: '15m',
+                    expiresIn: '1h',
                 },
             ),
             this.jwtService.signAsync(
