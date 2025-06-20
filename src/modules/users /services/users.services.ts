@@ -97,7 +97,17 @@ export class UserService {
         if (!userExists) throw new NotFoundException('User not found');
 
         return this.userRepository.banUser(id);
+
+
     }
+
+    async unbanUser(id: string): Promise<User> {
+        const user = await this.userRepository.findUserById(id);
+        if (!user) throw new NotFoundException('User not found');
+    
+        return this.userRepository.updateStatus(id, 'ACTIVE');
+      }
+    
 
 
     async createAdminUser(dto: CreateAdminDto): Promise<User> {
@@ -128,4 +138,39 @@ export class UserService {
 
         return this.userRepository.createAdminUser(createAdminDto);
     }
+
+
+
+    async promoteToModerator(userId: string, admin: User) {
+        if (admin.role !== Role.ADMIN) {
+          throw new ForbiddenException('Only admins can promote users to moderator');
+        }
+            const user = await this.userRepository.findUserById(userId);
+        if (!user) {
+          throw new NotFoundException(`User with ID ${userId} not found`);
+        }
+    
+        if (user.role === Role.MODERATOR) {
+          throw new BadRequestException('User is already a moderator');
+        }
+    
+        if (user.role === Role.ADMIN) {
+          throw new BadRequestException('Cannot change admin role');
+        }
+    
+        const updateData: UpdateUserDto = { role: Role.MODERATOR };
+        const promotedUser = await this.userRepository.updateUser(userId, updateData);    
+        return {
+          message: `User ${user.firstName} ${user.lastName} has been promoted to moderator`,
+          user: {
+            id: promotedUser.id,
+            email: promotedUser.email,
+            firstName: promotedUser.firstName,
+            lastName: promotedUser.lastName,
+            role: promotedUser.role,
+            status: promotedUser.status,
+            updatedAt: promotedUser.updatedAt
+          }
+        };
+      }
 }

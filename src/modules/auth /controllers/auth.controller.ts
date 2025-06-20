@@ -120,6 +120,24 @@ export class AuthController {
     }
   }
 
+  @Post('refresh')
+@HttpCode(HttpStatus.OK)
+@ApiOperation({ summary: 'Refresh Access Token' }) 
+@ApiResponse({ status: 200, description: 'Tokens refreshed successfully.' })
+@ApiBody({ schema: { example: { refreshToken: 'your_refresh_token_here' }}})
+async refreshTokens(@Body('refreshToken') refreshToken: string): Promise<AuthResponseType> {
+  if (!refreshToken) {
+    throw new UnauthorizedException('Refresh token is required');
+  }
+
+  try {
+    return await this.authService.refreshTokens(refreshToken);
+  } catch (error) {
+    this.logger.warn('Refresh token failed:', error.message);
+    throw new UnauthorizedException('Invalid refresh token');
+  }
+}
+
   @Get('google')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Google Authentication' })

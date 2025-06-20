@@ -105,6 +105,12 @@ export class UserRepository {
         });
     }
 
+    async updateStatus(id: string, status: 'BANNED' | 'ACTIVE'): Promise<User> {
+        return this.prisma.user.update({
+          where: { id },
+          data: { status },
+        });
+      }
 
     async createAdminUser(dto: CreateAdminDto): Promise<User> {
         const data = {

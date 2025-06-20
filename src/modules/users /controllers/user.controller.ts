@@ -60,6 +60,27 @@ import {
     ): Promise<Omit<UserResponseDto, 'password'>> {
       return this.userService.updateUser(id, updateUserDto, currentUser);
     }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Patch(':id/promote')
+    @Roles(Role.ADMIN)
+    @ApiResponse({ status: 200, description: 'User promoted successfully.', type: UserResponseDto })
+    @ApiParam({ name: 'id', type: String, description: 'User ID' })
+    @ApiOperation({ 
+      summary: 'Promote user to moderator (Admin only)',
+      description: 'Allows admin to promote a regular user to moderator role'
+    })
+    @ApiBody({ type: UpdateUserDto })  
+    
+    async promoteToModerator(
+      @Param('id') userId: string,
+      @GetUser() admin: User
+    ) {
+      return this.userService.promoteToModerator(userId, admin);
+    }
+  
+
+
   
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
@@ -85,7 +106,7 @@ import {
   
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.ADMIN)
-    @Patch(':id')
+    @Patch(':id/ban')
     @ApiOperation({ summary: 'Ban User' })
     @ApiResponse({ status: 200, description: 'User banned successfully.' })
     @ApiParam({ name: 'id', type: String, description: 'User ID' })
@@ -93,5 +114,15 @@ import {
     async ban(@Param('id') id: string) {
       return this.userService.banUser(id);
     }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch(':id/unban')
+  @ApiOperation({ summary: 'Unban a user' })
+  @ApiResponse({ status: 200, description: 'User unbanned successfully' })
+  @ApiParam({ name: 'id', type: String, description: 'User ID' })
+  async unbanUser(@Param('id') id: string) {
+    return this.userService.unbanUser(id);
+  }
   }
   

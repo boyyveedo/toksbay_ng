@@ -31,11 +31,11 @@ import {
 
 @ApiTags('Products')
 @Controller('products')
-// @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class ProductController {
     constructor(private readonly productService: ProductService) {}
 
     @Post('create')
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.ADMIN, Role.CUSTOMER)
     @UseInterceptors(FilesInterceptor('images', 5))
     @ApiConsumes('multipart/form-data')
@@ -72,7 +72,8 @@ export class ProductController {
     }
 
     @Put(':id/edit')
-    @Roles(Role.ADMIN, Role.CUSTOMER)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.ADMIN, Role.MODERATOR)
     @ApiOperation({ summary: 'Update a product (Admin/Customer)' })
     @ApiParam({ name: 'id', description: 'Product ID' })
     @ApiBody({ type: UpdateProductDto })
@@ -85,13 +86,14 @@ export class ProductController {
     }
 
     @Delete(':id')
-    @Roles(Role.ADMIN, Role.CUSTOMER)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.ADMIN, Role.MODERATOR)
     @ApiOperation({ summary: 'Delete a product (Admin/Customer)' })
     @ApiParam({ name: 'id', description: 'Product ID' })
     deleteProduct(
-        @GetUser('id') sellerId: string,
+        @GetUser() user: any, 
         @Param('id') id: string,
     ) {
-        return this.productService.deleteProduct(sellerId, id);
+    return this.productService.deleteProduct(user.id, id, user.role);
     }
 }

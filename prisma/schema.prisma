@@ -12,6 +12,8 @@ datasource db {
 enum Role {
   ADMIN
   CUSTOMER
+  MODERATOR
+
 }
 
 enum Condition {

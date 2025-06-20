@@ -23,12 +23,12 @@ import {
 
 @ApiTags('Categories')
 @Controller('categories')
-// @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
     @Post('create')
-    // @Roles(Role.ADMIN)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.ADMIN, Role.MODERATOR)
     @ApiOperation({ summary: 'Create a new category (Admin only)' })
     @ApiResponse({ status: 201, description: 'Category successfully created' })
     @ApiResponse({ status: 403, description: 'Forbidden. Only Admins can create categories.' })
@@ -53,7 +53,8 @@ export class CategoryController {
     }
 
     @Patch(':id')
-    @Roles(Role.ADMIN)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.ADMIN, Role.MODERATOR)
     @ApiOperation({ summary: 'Update a category by ID (Admin only)' })
     @ApiParam({ name: 'id', description: 'Category ID' })
     @ApiResponse({ status: 200, description: 'Category updated successfully' })
@@ -67,7 +68,8 @@ export class CategoryController {
     }
 
     @Delete(':id')
-    @Roles(Role.ADMIN)
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.ADMIN , Role.MODERATOR)
     @ApiOperation({ summary: 'Delete a category by ID (Admin only)' })
     @ApiParam({ name: 'id', description: 'Category ID' })
     @ApiResponse({ status: 200, description: 'Category deleted successfully' })
