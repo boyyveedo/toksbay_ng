@@ -74,15 +74,17 @@ export class ProductController {
     @Put(':id/edit')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.ADMIN, Role.MODERATOR)
-    @ApiOperation({ summary: 'Update a product (Admin/Customer)' })
+    @ApiOperation({ summary: 'Update a product (Admin/Moderator/Owner)' })
     @ApiParam({ name: 'id', description: 'Product ID' })
     @ApiBody({ type: UpdateProductDto })
-    updateProduct(
-        @GetUser('id') sellerId: string,
-        @Param('id') id: string,
+    async updateProduct(
+        @GetUser('id') userId: string,
+        @GetUser() user: { id: string; role: Role },
+        @Param('id') productId: string,
         @Body() dto: UpdateProductDto,
+        @UploadedFiles() files?: Express.Multer.File[],
     ) {
-        return this.productService.updateProduct(sellerId, id, dto);
+        return this.productService.updateProduct(userId, productId, dto, files, user.role);
     }
 
     @Delete(':id')
