@@ -15,8 +15,8 @@ export class CategoryService {
         private readonly categoryRepository: ICategoryRepository) { }
 
     async create(dto: CreateCategoryDto, user: User): Promise<Category> {
-        if (user.role !== Role.ADMIN) {
-            throw new ForbiddenException('Only admins can create categories');
+        if (user.role !== Role.ADMIN && user.role !== Role.MODERATOR) {
+            throw new ForbiddenException('Only admins and moderator can create categories');
         }
         return this.categoryRepository.create(dto);
     }

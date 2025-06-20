@@ -32,7 +32,7 @@ export class CategoryController {
     @ApiOperation({ summary: 'Create a new category (Admin only)' })
     @ApiResponse({ status: 201, description: 'Category successfully created' })
     @ApiResponse({ status: 403, description: 'Forbidden. Only Admins can create categories.' })
-    create(@Body() dto: CreateCategoryDto,user: User) {
+    create(@Body() dto: CreateCategoryDto, @GetUser() user: User) {
         return this.categoryService.create(dto, user);
     }
 
