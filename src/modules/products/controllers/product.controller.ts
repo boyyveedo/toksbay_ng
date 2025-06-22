@@ -74,17 +74,19 @@ export class ProductController {
     @Put(':id/edit')
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.ADMIN, Role.MODERATOR)
+    @UseInterceptors(FilesInterceptor('images', 10)) 
     @ApiOperation({ summary: 'Update a product (Admin/Moderator/Owner)' })
     @ApiParam({ name: 'id', description: 'Product ID' })
     @ApiBody({ type: UpdateProductDto })
+    @ApiConsumes('multipart/form-data') // Add this for Swagger documentation
     async updateProduct(
-        @GetUser('id') userId: string,
-        @GetUser() user: { id: string; role: Role },
-        @Param('id') productId: string,
-        @Body() dto: UpdateProductDto,
-        @UploadedFiles() files?: Express.Multer.File[],
+      @GetUser('id') userId: string,
+      @GetUser() user: { id: string; role: Role },
+      @Param('id') productId: string,
+      @Body() dto: UpdateProductDto,
+      @UploadedFiles() files?: Express.Multer.File[],
     ) {
-        return this.productService.updateProduct(userId, productId, dto, files, user.role);
+      return this.productService.updateProduct(userId, productId, dto, files, user.role);
     }
 
     @Delete(':id')
