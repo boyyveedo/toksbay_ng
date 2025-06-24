@@ -15,7 +15,7 @@ import { AuthHelper } from './helper';
 import { PasswordManagementService } from './services';
 import { RegistrationService } from './services';
 import { SessionService } from './services';
-import { UserModule } from '../users /users.module';
+import { UserModule } from '../users/users.module';
 import { PasswordService } from './services';
 import { SocialAuthService } from './services/social-auth.service';
 import { GoogleStrategy } from './strategy/google.strategy';

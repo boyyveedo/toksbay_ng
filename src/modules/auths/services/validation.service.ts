@@ -3,13 +3,12 @@ import {
     UnauthorizedException,
     ForbiddenException,
 } from '@nestjs/common';
-import { UserService } from 'src/modules/users /services/users.services';
+import { UsersService } from 'src/modules/users/services/users.services';
 import { verifyPassword } from '../helper';
 import { User } from '@prisma/client';
-
 @Injectable()
 export class UserValidationService {
-    constructor(private userService: UserService) { }
+    constructor(private userService: UsersService) { }
 
     async validateUserCredentials(email: string, password: string): Promise<User> {
         const user = await this.userService.findUserByEmail(email);

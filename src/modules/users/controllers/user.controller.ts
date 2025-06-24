@@ -1,7 +1,7 @@
 import {
     Controller, Post, Body, Get, Param, Put, Delete, UseGuards, Query, Patch
   } from '@nestjs/common';
-  import { UserService } from '../services/users.services';
+  import { UsersService } from '../services/users.services';
   import { CreateUserDto, UpdateUserDto, CreateAdminDto } from '../dto';
   import { User } from '@prisma/client';
   import { JwtAuthGuard, VerifiedUserGuard } from 'src/common/guards';
@@ -15,7 +15,7 @@ import {
   @ApiTags('Users')  
   @Controller('api/v1/users')
   export class UserController {
-    constructor(private readonly userService: UserService) {}
+    constructor(private readonly userService: UsersService) {}
   
     @UseGuards(JwtAuthGuard, VerifiedUserGuard)
     @Get('me/email')

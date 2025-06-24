@@ -1,6 +1,6 @@
 import { User } from '@prisma/client';
 import { CreateUserDto, UpdateUserDto, CreateAdminDto } from '../dto';
-import { CreateSocialUserDto } from 'src/modules/auth /dto';
+import { CreateSocialUserDto } from 'src/modules/auths/dto';
 
 export interface IUserRepository {
     createAdminUser(dto: CreateAdminDto): Promise<User>;

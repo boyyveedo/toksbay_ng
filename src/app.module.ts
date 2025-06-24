@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './modules/auth /auth.module';
-import { UserModule } from './modules/users /users.module';
+import { AuthModule } from './modules/auths/auth.module';
+import { UserModule } from './modules/users/users.module';
 import { ProductModule } from './modules/products/products.module';
 import { CategoryModule } from './modules/categories/categories.module';
 import { CartModule } from './modules/cart/cart.module';

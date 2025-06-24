@@ -13,7 +13,7 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'], // ✅ Enable detailed logs
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'], 
   });
 
   app.useGlobalPipes(

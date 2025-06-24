@@ -19,4 +19,4 @@ export interface ICartRepository {
   updateItemQuantity(userId: string, itemId: string, dto: UpdateCartItemDto): Promise<CartWithItems>;
   removeItem(userId: string, itemId: string): Promise<CartWithItems>;
   clearCart(userId: string): Promise<void>;
-}
+} 

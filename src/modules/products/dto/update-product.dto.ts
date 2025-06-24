@@ -5,4 +5,4 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 export class UpdateProductDto extends PartialType(CreateProductDto) {
     @ApiPropertyOptional()
     title?: string;
-}
+} 

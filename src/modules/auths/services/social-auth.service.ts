@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TokenService } from './token.service';
-import { UserMapper } from 'src/modules/users /user.mapper';
+import { UserMapper } from 'src/modules/users/user.mapper';
 import { AuthResponseType } from '../types';
 import { User } from '@prisma/client';
 

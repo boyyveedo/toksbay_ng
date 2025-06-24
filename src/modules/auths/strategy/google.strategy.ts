@@ -3,14 +3,14 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback, Profile } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
-import { UserService } from 'src/modules/users /services/users.services';
+import { UsersService } from 'src/modules/users/services/users.services';
 import { RegistrationService } from '../services';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     constructor(
         private configService: ConfigService,
-        private userService: UserService,
+        private userService: UsersService,
         private registrationService: RegistrationService,
 
     ) {

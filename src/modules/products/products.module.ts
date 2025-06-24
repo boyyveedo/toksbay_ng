@@ -5,7 +5,7 @@ import { ProductRepository } from './repository/product.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CommonModule } from 'src/common/common.module';
 import { PRODUCT_REPOSITORY } from './interface/product.interface';
-import { AuthModule } from '../auth /auth.module';
+import { AuthModule } from '../auths/auth.module';
 
 @Module({
     imports: [

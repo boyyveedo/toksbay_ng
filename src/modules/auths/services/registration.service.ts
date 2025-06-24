@@ -10,11 +10,11 @@ import { SignUpDto, CreateSocialUserDto } from '../dto';
 import { AuthResponseType } from '../types';
 import { TokenService } from './token.service';
 import { VerificationService } from './verification.service';
-import { UserMapper } from 'src/modules/users /user.mapper';
+import { UserMapper } from 'src/modules/users/user.mapper';
 import { IRegistrationService } from '../interface';
 import { User } from '@prisma/client';
-import { IUserRepository } from 'src/modules/users /repository/user.repository.interface';
-import { UserService } from 'src/modules/users /services/users.services';
+import { IUserRepository } from 'src/modules/users/repository/user.repository.interface';
+import { UsersService } from 'src/modules/users/services/users.services';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class RegistrationService implements IRegistrationService {
 
     constructor(
         private readonly prisma : PrismaService,
-        private  readonly userMutationService: UserService,
+        private  readonly userMutationService: UsersService,
         private readonly tokenService: TokenService,
         private  readonly verificationService: VerificationService,
         @Inject('IUserRepository') private userRepository: IUserRepository,

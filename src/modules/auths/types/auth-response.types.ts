@@ -1,4 +1,4 @@
-import { UserResponseDto } from "src/modules/users /types";
+import { UserResponseDto } from "src/modules/users/types";
 
 export class AuthResponseType {
     accessToken: string;

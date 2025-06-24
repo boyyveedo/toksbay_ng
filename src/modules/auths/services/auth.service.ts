@@ -3,7 +3,7 @@ import { SignInDto } from '../dto';
 import { AuthResponseType } from '../types';
 import { TokenService } from './token.service';
 import { UserValidationService } from './validation.service';
-import { UserMapper } from 'src/modules/users /user.mapper';
+import { UserMapper } from 'src/modules/users/user.mapper';
 import { IAuthService } from '../interface';
 import { SessionService } from './session.service';
 

@@ -1,5 +1,5 @@
 import { User } from '@prisma/client';
-import { SignUpDto } from 'src/modules/auth /dto';
+import { SignUpDto } from 'src/modules/auths/dto';
 import { UpdateUserDto } from '../dto';
 
 export interface IUserService {

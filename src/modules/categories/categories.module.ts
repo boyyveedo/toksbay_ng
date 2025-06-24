@@ -6,7 +6,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { CommonModule } from 'src/common/common.module';
 import { CATEGORY_REPOSITORY } from './interface/category.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AuthModule } from '../auth /auth.module';
+import { AuthModule } from '../auths/auth.module';
 @Module({
     imports: [AuthModule, PrismaModule, CommonModule],
     controllers: [CategoryController],
