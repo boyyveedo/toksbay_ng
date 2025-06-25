@@ -5,5 +5,5 @@ import { DeliveryStatus } from '@prisma/client';
 export class UpdateDeliveryStatusDto {
   @ApiProperty({ enum: DeliveryStatus })
   @IsEnum(DeliveryStatus)
-  status: DeliveryStatus;
+  DeliveryStatus: DeliveryStatus;
 }

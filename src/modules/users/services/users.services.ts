@@ -216,15 +216,16 @@ import { PasswordService } from 'src/modules/auths/services';
           this.logger.warn(`Invalid admin secret key for email: ${dto.email}`);
           throw new HttpException('Invalid admin secret key', HttpStatus.BAD_REQUEST);
         }
-  
+    
         const existingUser = await this.userRepository.findUserByEmail(dto.email);
         if (existingUser) {
           this.logger.warn(`User with email already exists: ${dto.email}`);
           throw new HttpException('User with this email already exists', HttpStatus.BAD_REQUEST);
         }
-  
+    
         const hashedPassword = await this.passwordService.hashPassword(dto.password);
-  
+        const hashedSecretKey = await this.passwordService.hashPassword(dto.secretKey);
+    
         const createAdminDto = {
           email: dto.email,
           password: hashedPassword,
@@ -233,12 +234,15 @@ import { PasswordService } from 'src/modules/auths/services';
           role: Role.ADMIN,
           status: 'ACTIVE',
           isVerified: true,
-          secretKey: dto.secretKey,
+          secretKey: hashedSecretKey,
         };
-  
+    
         const user = await this.userRepository.createAdminUser(createAdminDto);
         this.logger.debug(`Admin user created successfully: ${user.id}`);
-        return user;
+    
+        // Sanitize the response
+        const { password, secretKey, ...safeUser } = user;
+        return safeUser as User;
       } catch (error) {
         this.logger.error(`Failed to create admin user with email: ${dto.email}`, error.stack);
         throw error instanceof HttpException
@@ -246,6 +250,7 @@ import { PasswordService } from 'src/modules/auths/services';
           : new HttpException('Failed to create admin user', HttpStatus.INTERNAL_SERVER_ERROR);
       }
     }
+    
   
     async promoteToModerator(userId: string, admin: User) {
       this.logger.debug(`Promoting user to moderator with id: ${userId} by admin: ${admin.id}`);

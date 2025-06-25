@@ -1,5 +1,6 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { IOrderRepository, OrderWithItems } from '../interface/order.interface';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
+import { OrderRepository } from '../repository/order.repository';
+import { OrderWithItems } from '../interface/order.interface';
 import { CreateOrderDto } from '../dto';
 import { OrderStatus, DeliveryStatus } from '@prisma/client';
 
@@ -7,92 +8,91 @@ import { OrderStatus, DeliveryStatus } from '@prisma/client';
 export class OrderService {
   private readonly logger = new Logger(OrderService.name);
 
-  constructor(
-    @Inject('IOrderRepository')
-    private readonly orderRepository: IOrderRepository,
-  ) {}
+  constructor(private readonly orderRepository: OrderRepository) {}
 
-  async findAll(): Promise<OrderWithItems[]> {
-    this.logger.debug(`Fetching all orders`);
-    try {
-      const orders = await this.orderRepository.findAll();
-      this.logger.debug(`Retrieved ${orders.length} orders`);
-      return orders;
-    } catch (error) {
-      this.logger.error(`Failed to fetch all orders`, error.stack);
-      throw error;
-    }
-  }
+  // =============================================
+  // USER SERVICE METHODS
+  // =============================================
 
   async findByUserId(userId: string): Promise<OrderWithItems[]> {
-    this.logger.debug(`Fetching orders for userId: ${userId}`);
-    try {
-      const orders = await this.orderRepository.findByUserId(userId);
-      this.logger.debug(`Retrieved ${orders.length} orders for userId: ${userId}`);
-      return orders;
-    } catch (error) {
-      this.logger.error(`Failed to fetch orders for userId: ${userId}`, error.stack);
-      throw error;
+    this.logger.debug(`Service: Fetching orders for user ${userId}`);
+    return this.orderRepository.findByUserId(userId);
+  }
+
+  async findByIdAndUserId(orderId: string, userId: string): Promise<OrderWithItems | null> {
+    this.logger.debug(`Service: Fetching order ${orderId} for user ${userId}`);
+    return this.orderRepository.findByIdAndUserId(orderId, userId);
+  }
+
+  async create(userId: string, createOrderDto: CreateOrderDto): Promise<OrderWithItems> {
+    this.logger.debug(`Service: Creating order for user ${userId}`);
+    return this.orderRepository.create(userId, createOrderDto);
+  }
+
+  async cancelOrderByUser(orderId: string, userId: string): Promise<OrderWithItems> {
+    this.logger.debug(`Service: User ${userId} attempting to cancel order ${orderId}`);
+    
+    // Check if user can cancel this order
+    const canCancel = await this.orderRepository.canCancelOrder(orderId, userId);
+    if (!canCancel.canCancel) {
+      throw new ForbiddenException(canCancel.reason || 'Cannot cancel this order');
     }
+
+    return this.orderRepository.cancelOrder(orderId);
+  }
+
+  async getUserOrderStats(userId: string) {
+    this.logger.debug(`Service: Fetching order statistics for user ${userId}`);
+    return this.orderRepository.getUserOrderStats(userId);
+  }
+
+  // =============================================
+  // ADMIN SERVICE METHODS
+  // =============================================
+
+  async findAll(): Promise<OrderWithItems[]> {
+    this.logger.debug(`Service: Fetching all orders (admin)`);
+    return this.orderRepository.findAll();
   }
 
   async findById(id: string): Promise<OrderWithItems | null> {
-    this.logger.debug(`Fetching order with id: ${id}`);
-    try {
-      const order = await this.orderRepository.findById(id);
-      this.logger.debug(`Order ${order ? 'found' : 'not found'} for id: ${id}`);
-      return order;
-    } catch (error) {
-      this.logger.error(`Failed to fetch order with id: ${id}`, error.stack);
-      throw error;
-    }
-  }
-
-  async create(userId: string, dto: CreateOrderDto): Promise<OrderWithItems> {
-    this.logger.debug(`Creating order for userId: ${userId}, data: ${JSON.stringify(dto)}`);
-    try {
-      const order = await this.orderRepository.create(userId, dto);
-      this.logger.debug(`Order created successfully: ${order.id} for userId: ${userId}`);
-      return order;
-    } catch (error) {
-      this.logger.error(`Failed to create order for userId: ${userId}`, error.stack);
-      throw error;
-    }
+    this.logger.debug(`Service: Fetching order ${id} (admin)`);
+    return this.orderRepository.findById(id);
   }
 
   async updateStatus(id: string, status: OrderStatus): Promise<OrderWithItems> {
-    this.logger.debug(`Updating order status for id: ${id}, status: ${status}`);
-    try {
-      const order = await this.orderRepository.updateStatus(id, status);
-      this.logger.debug(`Order status updated successfully: ${id}`);
-      return order;
-    } catch (error) {
-      this.logger.error(`Failed to update order status for id: ${id}`, error.stack);
-      throw error;
-    }
+    this.logger.debug(`Service: Updating order ${id} status to ${status} (admin)`);
+    return this.orderRepository.updateStatus(id, status);
   }
 
   async updateDeliveryStatus(id: string, deliveryStatus: DeliveryStatus): Promise<OrderWithItems> {
-    this.logger.debug(`Updating delivery status for order id: ${id}, deliveryStatus: ${deliveryStatus}`);
-    try {
-      const order = await this.orderRepository.updateDeliveryStatus(id, deliveryStatus);
-      this.logger.debug(`Delivery status updated successfully: ${id}`);
-      return order;
-    } catch (error) {
-      this.logger.error(`Failed to update delivery status for id: ${id}`, error.stack);
-      throw error;
-    }
+    this.logger.debug(`Service: Updating order ${id} delivery status to ${deliveryStatus} (admin)`);
+    return this.orderRepository.updateDeliveryStatus(id, deliveryStatus);
   }
 
   async cancelOrder(id: string): Promise<OrderWithItems> {
-    this.logger.debug(`Cancelling order with id: ${id}`);
-    try {
-      const order = await this.orderRepository.cancelOrder(id);
-      this.logger.debug(`Order cancelled successfully: ${id}`);
-      return order;
-    } catch (error) {
-      this.logger.error(`Failed to cancel order with id: ${id}`, error.stack);
-      throw error;
-    }
+    this.logger.debug(`Service: Cancelling order ${id} (admin)`);
+    return this.orderRepository.cancelOrder(id);
+  }
+
+  async getOrdersByStatus(status: OrderStatus): Promise<OrderWithItems[]> {
+    this.logger.debug(`Service: Fetching orders with status ${status} (admin)`);
+    return this.orderRepository.getOrdersByStatus(status);
+  }
+
+  async getOrdersByDeliveryStatus(deliveryStatus: DeliveryStatus): Promise<OrderWithItems[]> {
+    this.logger.debug(`Service: Fetching orders with delivery status ${deliveryStatus} (admin)`);
+    return this.orderRepository.getOrdersByDeliveryStatus(deliveryStatus);
+  }
+
+  // =============================================
+  // UTILITY METHODS
+  // =============================================
+
+  getOrderStatusOptions(): { orderStatuses: string[], deliveryStatuses: string[] } {
+    return {
+      orderStatuses: Object.values(OrderStatus),
+      deliveryStatuses: Object.values(DeliveryStatus)
+    };
   }
 }
