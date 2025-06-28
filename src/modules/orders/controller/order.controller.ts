@@ -65,11 +65,10 @@ export class OrderController {
   @ApiResponse({ status: 204, description: 'Order cancelled successfully' })
   @ApiResponse({ status: 404, description: 'Order not found' })
   @ApiResponse({ status: 403, description: 'Cannot cancel this order' })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async cancelMyOrder(
     @Param('id') orderId: string,
     @GetUser('id') userId: string,
-  ): Promise<void> {
+  ): Promise<OrderWithItems> {
     // Verify user owns the order and it's cancellable
     const order = await this.orderService.findByIdAndUserId(orderId, userId);
     if (!order) {
@@ -81,7 +80,7 @@ export class OrderController {
       throw new ForbiddenException('Cannot cancel delivered or already cancelled orders');
     }
 
-    await this.orderService.cancelOrder(orderId);
+    return await this.orderService.cancelOrder(orderId); 
   }
 
   // =============================================
