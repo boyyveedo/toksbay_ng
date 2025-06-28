@@ -353,7 +353,7 @@ export class OrderRepository implements IOrderRepository {
               id: true,
               title: true,
               description: true,
-              imageUrl: true,
+              images: true,
             },
           },
         },
