@@ -147,7 +147,7 @@ export class OrderController {
     @Param('id') id: string,
     @Body() dto: UpdateDeliveryStatusDto,
   ): Promise<OrderWithItems> {
-    const order = await this.orderService.updateDeliveryStatus(id, dto.DeliveryStatus);
+    const order = await this.orderService.updateDeliveryStatus(id, dto.deliveryStatus);
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
     }
