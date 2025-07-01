@@ -6,6 +6,8 @@ import { VerifyPaymentDto } from '../dto/verify-payment.dto';
 import { PaymentInitializeResponse, PaymentVerifyResponse } from '../interfaces/payment.interface';
 import { OrderStatus, PaymentType } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
+
 
 @Injectable()
 export class PaymentService {
@@ -15,6 +17,7 @@ export class PaymentService {
     private paymentRepository: PaymentRepository,
     private paystackService: PaystackService,
     private prisma: PrismaService,
+    private readonly configService: ConfigService, // Inject ConfigService
   ) {}
 
   async initializePayment(userId: string, orderId: string, dto: InitializePaymentDto): Promise<PaymentInitializeResponse> {
@@ -27,31 +30,32 @@ export class PaymentService {
 
       if (!order) {
         this.logger.warn(`Order not found or does not belong to userId: ${userId}, orderId: ${orderId}`);
-        throw new HttpException(
-          'Order not found or does not belong to user',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new HttpException('Order not found or does not belong to user', HttpStatus.NOT_FOUND);
       }
 
       const existingPayment = await this.paymentRepository.findPaymentByOrderId(orderId);
       if (existingPayment) {
         this.logger.warn(`Payment already initialized for orderId: ${orderId}`);
-        throw new HttpException(
-          'Payment already initialized for this order',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new HttpException('Payment already initialized for this order', HttpStatus.BAD_REQUEST);
       }
 
       const paymentData = {
         email: dto.email,
-        amount: order.totalAmount.toNumber(),
+        amount: order.totalAmount.toNumber() * 100, // Convert to kobo for Paystack
         metadata: {
           userId,
           orderId,
         },
+        callback_url: this.configService.get<string>('PAYSTACK_CALLBACK_URL'), // Use env variable
       };
+      this.logger.debug(`Sending callback_url to Paystack: ${paymentData.callback_url}`);
+
 
       const paymentResponse = await this.paystackService.initializePayment(paymentData);
+      this.logger.debug(`Paystack response: ${JSON.stringify(paymentResponse)}`);
+
+
+
 
       await this.paymentRepository.createPayment({
         user: { connect: { id: userId } },
