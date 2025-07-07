@@ -21,7 +21,7 @@ import { PaymentModule } from './modules/payments/payments.module';
       isGlobal: true,
       validationSchema: envValidationSchema,
       load: [() => ({
-        FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+        FRONTEND_URL: process.env.FRONTEND_URL || 'https://soloshopp.netlify.app',
       })],
     }),
     AuthModule, 

@@ -6,7 +6,7 @@ export const envValidationSchema = Joi.object({
 
     DATABASE_URL: Joi.string().uri().required(),
 
-    FRONTEND_URL: Joi.string().default('http://localhost:5173'),
+    FRONTEND_URL: Joi.string().default('https://soloshopp.netlify.app'),
 
 
 });

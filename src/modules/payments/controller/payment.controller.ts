@@ -63,7 +63,6 @@ export class PaymentController {
     return this.paymentService.verifyPayment(user.id, dto);
   }
 
-  // Add this endpoint to handle the callback redirect
   @Get('callback')
   @ApiOperation({ summary: 'Handle payment callback redirect from Paystack' })
   @ApiResponse({ status: HttpStatus.FOUND, description: 'Redirect to frontend' })
@@ -80,7 +79,6 @@ export class PaymentController {
       const verificationResponse = await this.paystackService.verifyPayment(reference);
       
       if (verificationResponse.data.status === 'success') {
-        // Use existing webhook handler logic
         await this.paymentService.handleWebhook({
           event: 'charge.success',
           data: verificationResponse.data
