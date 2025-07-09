@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
+
 
 
 async function bootstrap() {
@@ -16,6 +18,8 @@ async function bootstrap() {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'], 
   });
 
+  app.use(cookieParser());
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -28,7 +32,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+    origin: process.env.ALLOWED_ORIGINS?.split(','),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });

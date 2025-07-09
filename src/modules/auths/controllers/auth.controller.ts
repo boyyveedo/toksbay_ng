@@ -12,7 +12,7 @@ import {
   Logger
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { AuthService } from '../services';
+import { AuthService, TokenService } from '../services';
 import { VerificationService } from '../services';
 import { PasswordResetService } from '../services/password-reset.service';
 import { RegistrationService } from '../services';
@@ -26,6 +26,12 @@ import { AuthGuard } from '@nestjs/passport';
 import { ResendVerificationDto } from '../dto';
 import { LogoutDto } from '../dto/logout.dto';
 
+// New response type for secure auth without exposing tokens
+export interface SecureAuthResponse {
+  user: any; 
+  message: string;
+}
+
 @ApiTags('Authentication')  
 @Controller('api/v1/auth')
 export class AuthController {
@@ -38,6 +44,7 @@ export class AuthController {
     private readonly registrationService: RegistrationService,
     private readonly passwordManagementService: PasswordManagementService,
     private readonly socialAuthService: SocialAuthService,
+    private readonly tokenService : TokenService
   ) {}
 
   @Post('signup')
@@ -59,10 +66,20 @@ export class AuthController {
   @Post('signin')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User Sign-In' })
-  @ApiResponse({ status: 200, description: 'Successful login.' })
+  @ApiResponse({ status: 200, description: 'Successful login. Tokens set in HTTP-only cookies.' })
   @ApiBody({ type: SignInDto })
-  async signIn(@Body() dto: SignInDto): Promise<AuthResponseType> {
-    return this.authService.signIn(dto);
+  async signIn(
+    @Body() dto: SignInDto, 
+    @Res({ passthrough: true }) res: Response
+  ): Promise<SecureAuthResponse> {
+    const tokens = await this.authService.signIn(dto);
+    
+    this.tokenService.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+    
+    return {
+      user: tokens.user,
+      message: 'Login successful'
+    };
   }
 
   @Post('verify-email')
@@ -82,7 +99,6 @@ export class AuthController {
   async resend(@Body() dto: ResendVerificationDto): Promise<{ message: string }> {
     return this.verificationService.resendVerificationEmail(dto.email);
   }
-  
 
   @Post('request-password-reset')
   @HttpCode(HttpStatus.OK)
@@ -106,37 +122,62 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Logout User' })
-  @ApiResponse({ status: 200, description: 'User logged out successfully.' })
-  @ApiBody({ type: LogoutDto, description: 'Refresh token' })  
-  async logout(@Body('refreshToken') refreshToken: string): Promise<void> {
+  @ApiOperation({ summary: 'Logout user by invalidating refresh token' })
+  @ApiResponse({ status: 200, description: 'Successfully logged out.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - No refresh token provided.' })
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<{ message: string }> {
+    const refreshToken = req.cookies?.refreshToken;
+    
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token is required');
     }
-    try {
-      await this.authService.logout(refreshToken);
-    } catch (error) {
-      throw new UnauthorizedException('Logout failed, invalid refresh token');
-    }
+  
+    await this.authService.logout(refreshToken);
+    
+    // Clear cookies
+    this.tokenService.clearTokenCookies(res);
+    
+    return { message: 'Successfully logged out' };
   }
 
   @Post('refresh')
-@HttpCode(HttpStatus.OK)
-@ApiOperation({ summary: 'Refresh Access Token' }) 
-@ApiResponse({ status: 200, description: 'Tokens refreshed successfully.' })
-@ApiBody({ schema: { example: { refreshToken: 'your_refresh_token_here' }}})
-async refreshTokens(@Body('refreshToken') refreshToken: string): Promise<AuthResponseType> {
-  if (!refreshToken) {
-    throw new UnauthorizedException('Refresh token is required');
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh Access Token using HTTP-only cookie' })
+  @ApiResponse({ status: 200, description: 'Tokens refreshed successfully. New tokens set in HTTP-only cookies.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing refresh token.' })
+  async refreshTokens(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<SecureAuthResponse> {
+    const refreshToken = req.cookies?.refreshToken;
+  
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
+  
+    try {
+      const tokens = await this.authService.refreshTokens(refreshToken);
+      
+      // Set new tokens in HTTP-only cookies
+      this.tokenService.setTokenCookies(res, tokens.accessToken, tokens.refreshToken);
+      
+      // Return only user data and success message
+      return {
+        user: tokens.user,
+        message: 'Tokens refreshed successfully'
+      };
+    } catch (error) {
+      this.logger.warn('Refresh token failed:', error.message);
+      
+      // Clear potentially invalid cookies
+      this.tokenService.clearTokenCookies(res);
+      
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
-
-  try {
-    return await this.authService.refreshTokens(refreshToken);
-  } catch (error) {
-    this.logger.warn('Refresh token failed:', error.message);
-    throw new UnauthorizedException('Invalid refresh token');
-  }
-}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -148,24 +189,53 @@ async refreshTokens(@Body('refreshToken') refreshToken: string): Promise<AuthRes
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Google Authentication Callback' })
-  @ApiResponse({ status: 302, description: 'Redirects to frontend with authentication tokens' })
+  @ApiResponse({ status: 302, description: 'Redirects to frontend after setting authentication cookies' })
   @ApiResponse({ status: 401, description: 'Google Authentication failed.' })
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     this.logger.log('Google auth callback reached');
     
     if (!req.user) {
       this.logger.error('Authentication failed: No user in request');
-      return res.status(401).json({ message: 'Authentication failed' });
+      return res.redirect('https://soloshopp.netlify.app/auth/failed');
     }
 
     try {
       const user = req.user as User;
       const authResult = await this.socialAuthService.handleSocialLogin(user);
       
-      return res.redirect(`https://soloshopp.netlify.app/auth/google/callback?token=${authResult.accessToken}`);
+      // Set tokens in HTTP-only cookies
+      this.tokenService.setTokenCookies(res, authResult.accessToken, authResult.refreshToken);
+      
+      // Redirect without exposing tokens in URL
+      return res.redirect('https://soloshopp.netlify.app/auth/success');
     } catch (error) {
       this.logger.error(`Google auth callback error: ${error.message}`);
-      return res.status(500).json({ message: 'Authentication processing failed' });
+      return res.redirect('https://soloshow.netlify.com/auth/failed');
+    }
+  }
+
+  // Optional: Add an endpoint to check if user is authenticated
+  @Get('status')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Check authentication status' })
+  @ApiResponse({ status: 200, description: 'User is authenticated.' })
+  @ApiResponse({ status: 401, description: 'User is not authenticated.' })
+  async checkAuthStatus(@Req() req: Request): Promise<{ isAuthenticated: boolean; user?: any }> {
+    const accessToken = req.cookies?.accessToken;
+    
+    if (!accessToken) {
+      return { isAuthenticated: false };
+    }
+    
+    try {
+      // Validate access token (you might need to implement this in TokenService)
+      const user = await this.tokenService.validateAccessToken(accessToken);
+      return { 
+        isAuthenticated: true,
+        user: user 
+      };
+    } catch (error) {
+      return { isAuthenticated: false };
     }
   }
 }
