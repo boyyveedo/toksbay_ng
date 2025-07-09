@@ -12,6 +12,7 @@ import {
   Logger
 } from '@nestjs/common';
 import { Response, Request } from 'express';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { AuthService, TokenService } from '../services';
 import { VerificationService } from '../services';
 import { PasswordResetService } from '../services/password-reset.service';
@@ -49,9 +50,11 @@ export class AuthController {
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 signups per minute
   @ApiOperation({ summary: 'User Registration' })  
   @ApiResponse({ status: 201, description: 'User created successfully.' })  
   @ApiResponse({ status: 400, description: 'Bad request.' })  
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   @ApiBody({ type: SignUpDto })  
   async signUp(@Body() dto: SignUpDto): Promise<AuthResponseType> {
     this.logger.log('Signup route hit');
@@ -65,8 +68,10 @@ export class AuthController {
 
   @Post('signin')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 login attempts per minute
   @ApiOperation({ summary: 'User Sign-In' })
   @ApiResponse({ status: 200, description: 'Successful login. Tokens set in HTTP-only cookies.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   @ApiBody({ type: SignInDto })
   async signIn(
     @Body() dto: SignInDto, 
@@ -84,8 +89,10 @@ export class AuthController {
 
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 verification attempts per minute
   @ApiOperation({ summary: 'Verify Email' })
   @ApiResponse({ status: 200, description: 'Email verified successfully.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   @ApiBody({ type: verificationCodeDto })
   async verifyEmail(@Body() codeDto: verificationCodeDto): Promise<VerificationResponse> {
     return this.verificationService.verifyEmail(codeDto);
@@ -93,8 +100,10 @@ export class AuthController {
 
   @Post('resend')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 2, ttl: 300000 } }) // 2 resend attempts per 5 minutes
   @ApiOperation({ summary: 'Resend Verification Email' })
   @ApiResponse({ status: 200, description: 'Verification email resent.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   @ApiBody({ type: ResendVerificationDto }) 
   async resend(@Body() dto: ResendVerificationDto): Promise<{ message: string }> {
     return this.verificationService.resendVerificationEmail(dto.email);
@@ -102,8 +111,10 @@ export class AuthController {
 
   @Post('request-password-reset')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 2, ttl: 300000 } }) // 2 password reset requests per 5 minutes
   @ApiOperation({ summary: 'Request Password Reset' })
   @ApiResponse({ status: 200, description: 'Password reset email sent.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   @ApiBody({ type: RequestPasswordResetDto })
   async requestPasswordReset(
     @Body() dto: RequestPasswordResetDto,
@@ -113,8 +124,10 @@ export class AuthController {
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 900000 } }) // 3 password reset attempts per 15 minutes
   @ApiOperation({ summary: 'Reset Password' })
   @ApiResponse({ status: 200, description: 'Password reset successfully.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   @ApiBody({ type: ResetPasswordDto })
   async resetPassword(@Body() dto: ResetPasswordDto): Promise<ResetPasswordResponse> {
     return this.passwordManagementService.resetPassword(dto);
@@ -122,9 +135,11 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 logout attempts per minute (generous)
   @ApiOperation({ summary: 'Logout user by invalidating refresh token' })
   @ApiResponse({ status: 200, description: 'Successfully logged out.' })
   @ApiResponse({ status: 401, description: 'Unauthorized - No refresh token provided.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   async logout(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response
@@ -145,9 +160,11 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 refresh attempts per minute
   @ApiOperation({ summary: 'Refresh Access Token using HTTP-only cookie' })
   @ApiResponse({ status: 200, description: 'Tokens refreshed successfully. New tokens set in HTTP-only cookies.' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing refresh token.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   async refreshTokens(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response
@@ -181,6 +198,7 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
+  @SkipThrottle() // Skip throttling for OAuth redirects
   @ApiOperation({ summary: 'Google Authentication' })
   @ApiResponse({ status: 302, description: 'Redirects to Google login page.' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -188,9 +206,11 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 OAuth callbacks per minute
   @ApiOperation({ summary: 'Google Authentication Callback' })
   @ApiResponse({ status: 302, description: 'Redirects to frontend after setting authentication cookies' })
   @ApiResponse({ status: 401, description: 'Google Authentication failed.' })
+  @ApiResponse({ status: 429, description: 'Rate limit exceeded.' })
   async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
     this.logger.log('Google auth callback reached');
     
@@ -217,6 +237,7 @@ export class AuthController {
   // Optional: Add an endpoint to check if user is authenticated
   @Get('status')
   @HttpCode(HttpStatus.OK)
+  @SkipThrottle() // Skip throttling for status checks - users check this frequently
   @ApiOperation({ summary: 'Check authentication status' })
   @ApiResponse({ status: 200, description: 'User is authenticated.' })
   @ApiResponse({ status: 401, description: 'User is not authenticated.' })

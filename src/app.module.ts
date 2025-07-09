@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auths/auth.module';
@@ -14,6 +15,7 @@ import { envValidationSchema } from './env.validation';
 import { PrismaModule } from './prisma/prisma.module';
 import { CommonModule } from './common/common.module';
 import { PaymentModule } from './modules/payments/payments.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -24,20 +26,36 @@ import { PaymentModule } from './modules/payments/payments.module';
         FRONTEND_URL: process.env.FRONTEND_URL || 'https://soloshopp.netlify.app',
       })],
     }),
-    AuthModule, 
-    UserModule, 
-    ProductModule, 
-    CategoryModule, 
-    CartModule, 
-    OrderModule, 
-    PaymentModule, 
-    ReviewsModule, 
-    SharedModule, 
-    PrismaModule, 
-    CommonModule, 
-    CartModule
+    
+    // Rate limiting configuration - Generous global defaults
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000, // 1 minute
+        limit: 300, // 300 requests per minute (generous for e-commerce browsing)
+      }
+    ]),
+    
+    AuthModule,
+    UserModule,
+    ProductModule,
+    CategoryModule,
+    CartModule,
+    OrderModule,
+    PaymentModule,
+    ReviewsModule,
+    SharedModule,
+    PrismaModule,
+    CommonModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Apply throttler guard globally
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}
