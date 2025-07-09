@@ -55,10 +55,11 @@ export class TokenService {
     setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
         const isProduction = this.configService.get('NODE_ENV') === 'production';
         
+        // Use 'lax' instead of 'strict' for OAuth compatibility
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
             secure: isProduction,
-            sameSite: 'strict',
+            sameSite: 'lax', // Changed from 'strict' to 'lax'
             maxAge: 15 * 60 * 1000, // 15 minutes
             path: '/',
         });
@@ -67,17 +68,17 @@ export class TokenService {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: isProduction,
-            sameSite: 'strict',
+            sameSite: 'lax', // Changed from 'strict' to 'lax'
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            path: '/api/v1/auth/refresh', // Restrict to refresh endpoint
+            path: '/', // Changed from '/api/v1/auth/refresh' to '/' for OAuth compatibility
         });
     }
 
     // Clear cookies on logout
     clearTokenCookies(res: Response) {
         res.clearCookie('accessToken');
-        res.clearCookie('refreshToken', { path: '/api/v1/auth/refresh' });
-      }
+        res.clearCookie('refreshToken'); // Remove the path restriction
+    }
 
     async validateAccessToken(token: string) {
         try {
